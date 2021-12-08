@@ -1,0 +1,55 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(lubridate)
+library(ggpubr)
+```
+
+Steps for calculating h
+- compute average ambient temperature
+  - iButton data from 4 spots around the thermal manikin
+- compute average temperature of each body segment at steady state
+- compute average power of each body segment at steady state
+
+Read csv data
+```{r}
+data16_2 <- read_csv("20211130_Warmup.csv")
+data28_2 <- read_csv("20211201_Warmup.csv")
+```
+```{r}
+data_all <- data16_2 %>%
+  full_join(data28_2) %>%
+  mutate(Time = mdy_hm(Time)) %>%
+  filter(Setting == "Comfort") %>%
+  group_by(Chamber.SetPoint) %>%
+  slice(tail(row_number(), 20)) %>%
+  pivot_longer(cols = ends_with(".T") | ends_with(".P"),
+               names_to = c("BodySegment", "Metric"),
+               names_sep = "[.]") %>%
+  pivot_wider(names_from = Metric, names_prefix = "Metric.", values_from = value) %>%
+  group_by(Chamber.SetPoint, BodySegment) %>%
+  summarise(Ta = mean(Chamber.SetPoint), Ts = mean(Metric.T), P = mean(Metric.P)) %>%
+  mutate(h = P/(Ts-Ta))
+
+data_all 
+```
+```{r}
+ggplot(data_all, aes(x = Ta, y = h)) + geom_line(aes(colour = BodySegment)) +
+  scale_y_continuous(limits = c(0,15)) +
+  theme_minimal()
+
+```
+```{r}
+data_all <- data_all %>%
+  filter(BodySegment == "All")
+
+ggplot(data_all, aes(x = Ta, y = h)) + geom_line() +
+  scale_y_continuous(limits = c(0,15)) +
+  theme_minimal()
+
+```
+
