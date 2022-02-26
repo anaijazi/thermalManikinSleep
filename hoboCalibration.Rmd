@@ -71,7 +71,7 @@ hobo_steady <- hobo_data %>%
   select(Hobo, rowNumber, Temperature_C, steadyT) %>%
   mutate(Difference = Temperature_C - steadyT)
 ```
-```{r}
+```{r include=FALSE}
 theme_custom = function() {
   theme_minimal() %+replace%
     theme(legend.position = "top") +

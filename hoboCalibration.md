@@ -74,15 +74,6 @@ hobo_steady <- hobo_data %>%
   mutate(Difference = Temperature_C - steadyT)
 ```
 
-``` r
-theme_custom = function() {
-  theme_minimal() %+replace%
-    theme(legend.position = "top") +
-    theme(panel.grid = element_blank())
-}
-plot_colors <- c("#4477AA", "#66CCEE", "#228833", "#CCBB44", "#EE6677", "#AA3377")
-```
-
 Temperature versus time step (during steady state)  
 ![](hoboCalibration_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
