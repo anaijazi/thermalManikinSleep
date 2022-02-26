@@ -6,14 +6,7 @@ output: html_notebook
 ```{r}
 library(tidyverse)
 library(lubridate)
-library(ggpubr)
 ```
-
-Steps for calculating h
-- compute average ambient temperature
-  - iButton data from 4 spots around the thermal manikin
-- compute average temperature of each body segment at steady state
-- compute average power of each body segment at steady state
 
 Read column names
 ```{r}
@@ -35,11 +28,45 @@ data_clean <- data %>%
          -ends_with(".ET"), 
          -starts_with("All"), 
          -starts_with("GroupA"), 
-         -starts_with("GroupB")) %>%
-  mutate(Time = mdy_hms(Time))
+         -starts_with("GroupB"),
+         -Runtime) %>%
+  mutate(Time = mdy_hms(Time)) %>%
+  head(-2) # removes last 1 minute of data
 ```
 
 
+```{r}
+data_experiemnt1 <- data_clean %>%
+  filter(Time > mdy_hms("12/31/2021 03:30:00 PM") & Time < mdy_hms("12/31/2021 04:57:00 PM")) %>%
+  pivot_longer(cols = ends_with(".T") | ends_with(".P"),
+               names_to = c("BodySegment", "Metric"),
+               names_sep = "[.]") %>%
+  pivot_wider(names_from = Metric, names_prefix = "Metric.", values_from = value) %>%
+  group_by(BodySegment) %>%
+  mutate(deltaT= Metric.T - lag(Metric.T, default = first(Metric.T))) %>%
+  mutate(deltaP= Metric.P - lag(Metric.P, default = first(Metric.P))) %>%
+  slice_tail(n = 20) %>%
+  summarise(max.deltaT = max(deltaT),
+            mean.deltaT = mean(deltaT)) %>%
+  mutate(max.deltaT = round(max.deltaT, digits = 2)) %>%
+  mutate(mean.deltaT = round(mean.deltaT, digits = 2)) 
+
+```
+
+
+```{r}
+ggplot(data_experiemnt1, aes(x = Time, deltaT)) +
+  geom_line(aes(colour = BodySegment)) +
+  geom_hline(yintercept = c(-0.2, 0.2)) +
+  theme_minimal()
+```
+
+```{r}
+ggplot(data_experiemnt1, aes(x = Time, deltaP)) +
+  geom_line(aes(colour = BodySegment)) +
+  #geom_hline(yintercept = c(-0.2, 0.2)) +
+  theme_minimal()
+```
 
 ```{r}
 data <- data16_2 %>%
