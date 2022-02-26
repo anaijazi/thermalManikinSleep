@@ -1,0 +1,84 @@
+Block,Random.Number,Chamber.SetPoint,Clothing,Bedding,Posture,Emergency.Blanket,Bed.Type,PCS,Repetition,Reference,Baseline,Notes,Start.Time,End.Time,Comments,IR.Image
+1,0.052132951,16,Nude,None,Log,FALSE,Slat,None,2,TRUE,FALSE,For calculating h,1/4/2022 13:31,1/4/2022 16:00,,IR_5794-IR_5800
+1,0.055743349,16,Light,Light,Log,FALSE,Mattress,None,2,FALSE,TRUE,Heating baseline 2,1/4/2022 9:08,1/4/2022 12:59,,IR_5787-IR5790
+1,0.145653621,16,Heavy,Heavy,Fetal,FALSE,Mattress,None,1,FALSE,FALSE,All passive strategies 1,1/7/2022 13:33,1/7/2022 16:00,,IR_5808-IR5810
+1,0.277773537,16,Nude,None,Fetal,FALSE,Slat,None,1,TRUE,FALSE,For calculating h,2/7/2022 18:51,2/7/2022 19:54,,IR_5988-IR_5990
+1,0.512152834,16,Nude,None,Fetal,FALSE,Slat,None,2,TRUE,FALSE,For calculating h,1/7/2022 21:08,1/8/2022 0:00,,
+1,0.607534926,16,Nude,None,Log,FALSE,Slat,None,1,TRUE,FALSE,For calculating h,12/31/2021 15:30,12/31/2021 16:57,Right thigh power shut off. Start run from heating control reset at 3:30pm,IR_5764-IR_5770
+1,0.652136948,16,Heavy,Heavy,Fetal,TRUE,Mattress,None,1,FALSE,FALSE,All passive strategies 1,1/7/2022 16:07,1/7/2022 20:48,,
+1,0.854630296,16,Light,Light,Log,FALSE,Mattress,None,1,FALSE,TRUE,Heating baseline 1,1/3/2022 12:00,1/3/2022 15:11,,IR_5774-IR_5779
+1,0.859034764,16,Light,Light,Log,FALSE,Mattress,HeatedBlanket,1,FALSE,FALSE,"Heated blanket, baseline 1",1/3/2022 16:50,1/3/2022 19:30,,IR_5780-IR_5784
+2,0.118122148,28,Light,Light,Log,FALSE,Mattress,None,1,FALSE,TRUE,Cooling baseline 1,1/9/2022 8:00,1/9/2022 11:38,,IR_5821-IR_5824
+2,0.118259319,28,Nude,None,Starfish,FALSE,Slat,None,1,FALSE,FALSE,"Slat bed, all passive",1/10/2022 15:22,1/10/2022 18:22,,
+2,0.150637722,28,Light,Light,Log,FALSE,Mattress,None,2,FALSE,TRUE,Cooling baseline 2,1/8/2022 11:36,1/8/2022 21:00,,IR_5815-IR_5820
+2,0.171117928,28,Light,Light,Log,FALSE,Slat,None,1,FALSE,FALSE,"Slat bed, baseline",1/9/2022 21:45,1/9/2022 23:50,,
+2,0.413526119,28,Light,Light,Log,FALSE,Slat,None,2,FALSE,FALSE,"Slat bed, baseline",1/10/2022 9:00,1/10/2022 12:32,,IR_5842-IR_5843
+2,0.453354315,28,Nude,None,Starfish,FALSE,Slat,None,2,TRUE,FALSE,For calculating h,1/9/2022 11:58,1/9/2022 12:46,,IR_5825-IR_5827
+2,0.467180351,28,Light,Light,Log,FALSE,Mattress,PedestalFanHigh,1,FALSE,FALSE,"Pedestal fan, baseline 1",1/9/2022 17:35,1/9/2022 21:28,,IR_5834-IR_5840
+2,0.519998441,28,Nude,None,Starfish,FALSE,Mattress,None,1,FALSE,FALSE,All passive strategies 1,1/11/2022 12:05,1/11/2022 16:27,,IR_5850-IR_5854
+2,0.690351385,28,Nude,None,Log,FALSE,Slat,None,2,TRUE,FALSE,For calculating h,1/9/2022 14:47,1/9/2022 17:09,,IR_5830-IR_5833
+2,0.936441219,28,Nude,None,Starfish,FALSE,Slat,None,2,FALSE,FALSE,"Slat bed, all passive",1/10/2022 19:28,1/10/2022 22:28,,
+2,0.993942188,28,Nude,None,Starfish,FALSE,Slat,None,1,TRUE,FALSE,For calculating h,1/10/2022 12:44,1/10/2022 13:56,,IR_5844-IR_5849
+3,0.020669977,24,Nude,None,Log,FALSE,Mattress,None,1,FALSE,FALSE,Clo value of mattress,1/12/2022 12:09,1/12/2022 15:00,,
+3,0.18070236,24,Heavy,None,Log,FALSE,Slat,None,1,FALSE,FALSE,Clo value of heavy clothing,1/17/2022 11:04,1/17/2022 14:04,,IR_5855-IR_5857
+3,0.244020675,24,Nude,Light,Log,FALSE,Slat,None,1,FALSE,FALSE,Clo value of light bedding,1/11/2022 20:10,1/12/2022 1:12,,
+3,0.371030424,24,Light,None,Log,FALSE,Slat,None,1,FALSE,FALSE,Clo value of light clothing,1/17/2022 15:55,1/17/2022 5:03,,IR_5864-IR_5867
+3,0.420970301,24,Nude,Heavy,Log,FALSE,Slat,None,1,FALSE,FALSE,Clo value of heavy bedding,1/17/2022 14:27,1/17/2022 3:43,,IR_5859-IR_5863
+4,0.016730251,28,Nude,None,Starfish,FALSE,Mattress,HydropoweredMP,1,FALSE,FALSE,"Hydropower mattress pad, all passive",1/22/2022 13:52,1/22/2022 22:45,mattress pad temperature of 18 C,
+4,0.036201664,28,Light,Light,Log,FALSE,Mattress,PedestalFanLow,2,FALSE,FALSE,"Pedestal fan low, baseline 2",1/27/2022 14:45,1/27/2022 16:45,,IR_5933-IR_5937
+4,0.088827799,28,Nude,None,Starfish,FALSE,Slat,None,3,TRUE,FALSE,For calculating h,1/18/2022 13:00,1/18/2022 17:25,,IR_5868-IR_5873
+4,0.096939193,28,Nude,None,Starfish,FALSE,Mattress,PedestalFanHigh,1,FALSE,FALSE,"Pedestal fan, all passive",1/23/2022 18:54,1/24/2022 2:06,,
+4,0.107450447,28,Nude,None,Starfish,FALSE,Slat,None,5,TRUE,FALSE,For calculating h,1/22/2022 10:23,1/22/2022 13:28,,
+4,0.164251825,28,Nude,None,Starfish,FALSE,Mattress,CeilingFanLow,1,FALSE,FALSE,"Ceiling fan, all passive",1/25/2022 21:25,1/26/2022 12:30,added case on 1/25/2022,IR_5913-IR_5916
+4,0.179387364,28,Light,Light,Log,FALSE,Mattress,None,3,FALSE,TRUE,Cooling baseline 3,1/27/2022 12:05,1/27/2022 13:38,,IR_5921-IR_5924
+4,0.323094325,28,Nude,Light,Log,FALSE,Mattress,None,1,FALSE,FALSE,Clothing in isolation,1/24/2022 16:45,1/24/2022 20:49,,IR_5905-IR_5908
+4,0.379980887,28,Nude,None,Log,FALSE,Slat,None,4,TRUE,FALSE,For calculating h,1/19/2022 11:59,1/18/2022 13:37,,
+4,0.38391787,28,Light,None,Log,FALSE,Mattress,None,1,FALSE,FALSE,Bedding in isolation,1/21/2022 14:14,1/21/2022 16:28,,
+4,0.384253619,28,Light,Light,Log,FALSE,Mattress,CeilingFanLow,1,FALSE,FALSE,"Ceiling fan low, baseline",1/25/2022 19:25,1/25/2022 21:16,added case on 1/25/2022,
+4,0.393212182,28,Nude,None,Starfish,FALSE,Mattress,None,2,FALSE,FALSE,All passive strategies 2,1/18/2022 17:39,1/18/2022 20:39,,IR_5874-IR_5877
+4,0.514812627,28,Nude,None,Log,FALSE,Slat,None,3,TRUE,FALSE,For calculating h,1/26/2022 14:14,1/26/2022 15:24,,
+4,0.546550193,28,Nude,None,Starfish,FALSE,Mattress,CeilingFanHigh,1,FALSE,FALSE,"Ceiling fan, all passive",1/25/2022 12:33,1/25/2022 13:56,skip until can remove fan diffuser,
+4,0.586917946,28,Light,Light,Log,FALSE,Mattress,PedestalFanHigh,2,FALSE,FALSE,"Pedestal fan high, baseline 2",1/27/2022 13:42,1/27/2022 14:40,,IR_5924-IR_5932
+4,0.614375375,28,Nude,None,Starfish,FALSE,Mattress,PedestalFanHigh,2,FALSE,FALSE,"Pedestal fan, all passive",1/24/2022 8:28,1/24/2022 13:08,,IR_5895-IR_5904
+4,0.64481718,28,Light,Light,Log,FALSE,Mattress,None,4,FALSE,TRUE,Cooling baseline 4,1/21/2022 8:30,1/21/2022 11:38,,
+4,0.652187737,28,Light,Light,Log,FALSE,Mattress,CeilingFanLow,2,FALSE,FALSE,Ceiling fan low baseline 2,1/27/2022 16:50,1/27/2022 18:20,,IR_5939-IR_5942
+4,0.691768141,28,Light,Light,Log,FALSE,Mattress,CeilingFanHigh,1,FALSE,FALSE,"Ceiling fan high, baseline",1/25/2022 12:40,1/25/2022 14:30,skipped until fan diffuser removed on 1/24/2022,IR_5909-IR_5912
+4,0.693436254,28,Light,None,Starfish,FALSE,Mattress,None,1,FALSE,FALSE,Posture in isolation,1/18/2022 20:44,1/18/2022 23:39,,
+4,0.737082849,28,Light,Light,Log,FALSE,Mattress,CeilingFanHigh,2,FALSE,FALSE,"Ceiling fan high, baseline 2",1/29/2022 15:19,1/29/2022 4:38,,IR_5944-IR_5949
+4,0.76337192,28,Light,Light,Log,FALSE,Mattress,HydropoweredMP,2,FALSE,FALSE,"Hydropower mattress pad, baseline",1/23/2022 15:08,1/23/2022 16:59,mattress pad temperature (high),IR_5973-IR_5975
+4,0.778803645,28,Nude,None,Starfish,FALSE,Slat,None,4,TRUE,FALSE,For calculating h,1/21/2022 17:28,1/21/2022 22:18,,
+4,0.945384638,28,Light,Light,Log,FALSE,Mattress,HydropoweredMP,1,FALSE,FALSE,"Hydropower mattress pad, reference",1/20/2022 15:20,1/20/2022 17:42,mattress pad temperature of 16 C,IR_5883-IR_5890
+4,,28,Light,Light,Log,FALSE,Mattress,None,5,FALSE,TRUE,Cooling baseline 5,1/20/2022 8:26,1/20/2022 12:26,,
+4,,28,Nude,None,Starfish,FALSE,Mattress,PedestalFanLow,1,FALSE,FALSE,,1/26/2022 15:39,1/26/2022 20:17,,
+4,,28,Nude,None,Starfish,FALSE,Mattress,PedestalFanHigh,3,FALSE,FALSE,,1/26/2022 20:20,1/26/2022 21:46,,
+5,0.009964096,16,Light,Light,Log,FALSE,Mattress,None,4,FALSE,TRUE,Heating baseline 4,2/8/2022 21:38,2/9/2022 15:06,,IR_5998-IR_6000
+5,0.071253835,16,Light,Light,Log,FALSE,Mattress,ElectricMPLow,1,FALSE,FALSE,"Electric mattress pad, baseline",2/9/2022 15:10,2/9/2022 16:28,Setting = 1/10 (low),IR_6001-IR_6003
+5,0.071253835,16,Light,Light,Log,FALSE,Mattress,ElectricMPHigh,1,FALSE,FALSE,"Electric mattress pad, baseline",2/9/2022 16:31,2/9/2022 19:00,Setting = 3/10,IR_6005-IR_6007
+5,0.144093418,16,Light,Light,Log,FALSE,Mattress,HeatedBlanket,2,FALSE,FALSE,"Heated blanket, baseline 2",2/7/2022 14:34,2/7/2022 16:11,,IR_5980-IR_5983
+5,0.408837728,16,Light,Light,Log,FALSE,Mattress,None,3,FALSE,TRUE,Heating baseline 3,2/9/2022 19:21,2/9/2022 20:50,,
+5,0.446692282,16,Nude,None,Fetal,FALSE,Slat,None,3,TRUE,FALSE,For calculating h,2/5/2022 19:00,2/5/2022 20:45,,IR_5970-IR_5972
+5,0.534504862,16,Heavy,Light,Log,FALSE,Mattress,None,1,FALSE,FALSE,Clothing in isolation,2/8/2022 12:31,2/8/2022 14:00,,IR_5991-IR_5994
+5,0.600005745,16,Light,Light,Log,TRUE,Mattress,None,1,FALSE,FALSE,Emergency blanket in isolation,2/8/2022 14:11,2/8/2022 17:29,,IR_5995-IR_IR_5997
+5,0.607932227,16,Nude,None,Fetal,FALSE,Slat,None,4,TRUE,FALSE,For calculating h,2/5/2022 17:17,2/5/2022 18:17,,
+5,0.657257876,16,Heavy,Heavy,Fetal,TRUE,Mattress,HeatedBlanket,1,FALSE,FALSE,"Heated blanket, all passive",2/13/2022 14:38,2/13/2022 16:47,,IR_6024-IR_6026
+5,0.666255736,16,Heavy,Heavy,Fetal,TRUE,Mattress,ElectricMPLow,1,FALSE,FALSE,"Electric mattress pad, all passive",2/5/2022 10:47,2/5/2022 14:47,Setting = 1/10 (low),IR_5960 - IR_5965
+5,0.666255736,16,Heavy,Heavy,Fetal,TRUE,Mattress,ElectricMPHigh,1,FALSE,FALSE,"Electric mattress pad, all passive",2/5/2022 14:53,2/5/2022 4:45,Setting = 3/10,IR_5966-IR_5969
+5,0.674592516,16,Heavy,Heavy,Fetal,TRUE,Mattress,HydropoweredMP,1,FALSE,FALSE,"Hydropowered mattress pad, all passive",2/7/2022 21:07,2/8/2022 5:00,,
+5,0.72495769,16,Heavy,Heavy,Fetal,TRUE,Mattress,None,2,FALSE,FALSE,All passive strategies 2,2/7/2022 12:21,2/7/2022 14:17,,IR_5976-IR_5979
+5,0.782102001,16,Nude,None,Log,FALSE,Slat,None,4,TRUE,FALSE,For calculating h,2/8/2022 17:47,2/8/2022 21:16,,
+5,0.782986983,16,Light,Light,Fetal,FALSE,Mattress,None,1,FALSE,FALSE,Posture in isolation,2/7/2022 16:19,2/7/2022 18:39,,IR_5985-IR_5987
+5,0.789698171,16,Light,Light,Log,FALSE,Mattress,HydropoweredMP,1,FALSE,FALSE,"Hydropowered mattress pad, baseline",2/6/2022 13:38,2/6/2022 21:38,,
+5,0.80207967,16,Heavy,Heavy,Fetal,TRUE,Mattress,HWBottle,1,FALSE,FALSE,"Hot water bottle, all passive",2/13/2022 12:27,2/13/2022 14:35,,IR_6019-IR_6023
+5,0.810793917,16,Light,Light,Log,FALSE,Mattress,None,1,FALSE,TRUE,"Heating, baseline",2/15/2022 9:00,2/15/2022 11:47,,
+5,0.810793917,16,Light,Light,Log,FALSE,Mattress,HWBottle,1,FALSE,FALSE,"Hot water bottle, baseline",2/15/2022 11:58,2/15/2022 13:25,,IR_6027-IR_6030
+5,0.820807123,16,Nude,None,Log,FALSE,Slat,None,3,TRUE,FALSE,For calculating h,2/7/2022 19:59,2/7/2022 20:50,,
+5,0.826272807,16,Light,Heavy,Log,FALSE,Mattress,None,1,FALSE,FALSE,Bedding in isolation,2/9/2022 20:54,2/10/2022 14:22,,IR_6011-IR_6015
+6,0,16,Light,Light,Log,FALSE,Mattress,ElectricMPHigh,2,FALSE,FALSE,,2/20/2022 15:21,2/20/2022 16:44,,
+6,0.976078187,16,Light,Light,Log,FALSE,Mattress,ElectricMPLow,2,FALSE,FALSE,,2/20/2022 16:47,2/20/2022 17:43,,
+6,0.052622349,16,Light,Light,Log,FALSE,Mattress,HydropoweredMP,2,FALSE,FALSE,,2/21/2022 10:30,2/20/2022 12:44,,
+6,0.474982211,16,Light,Light,Log,FALSE,Mattress,HeatedBlanket,2,FALSE,FALSE,,2/22/2022 10:30,2/22/2022 13:23,,
+6,0.777638177,16,Heavy,Heavy,Fetal,TRUE,Mattress,HeatedBlanket,2,FALSE,FALSE,,2/22/2022 13:32,2/22/2022 17:10,,
+6,0.409785211,16,Heavy,Heavy,Fetal,TRUE,Mattress,ElectricMPHigh,2,FALSE,FALSE,,2/22/2022 17:11,2/22/2022 18:12,,
+6,0.924642432,16,Heavy,Heavy,Fetal,TRUE,Mattress,HydropoweredMP,2,FALSE,FALSE,,2/23/2022 11:56,,,
+6,0.384322374,16,Heavy,Heavy,Fetal,TRUE,Mattress,ElectricMPHigh,2,FALSE,FALSE,,2/22/2022 18:12,2/22/2022 18:45,,
+,,28,Nude,None,Starfish,FALSE,Mattress,HydropoweredMP,2,FALSE,FALSE,,2/24/2022 11:38,,,
