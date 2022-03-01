@@ -1,5 +1,5 @@
 ---
-title: "HWBottle"
+title: "Appendix: Hot water bottle"
 author: "Arfa Aijazi"
 date: "2/28/2022"
 output: github_document
