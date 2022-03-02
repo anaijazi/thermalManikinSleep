@@ -130,6 +130,7 @@ hobo_lm <- hobo_steady %>%
                           TRUE ~ "Slope")) %>%
   mutate(estimate = round(estimate, digits = 5)) %>%
   pivot_wider(names_from = term, values_from = estimate)
+hobo_lm
 ```
 
 Calculate calibrated temperature based on linear model  

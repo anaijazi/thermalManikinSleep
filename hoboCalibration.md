@@ -1,5 +1,7 @@
 Appendix: HOBO Calibration
 ================
+Arfa Aijazi
+2/26/2022
 
 Load libraries
 
@@ -97,7 +99,18 @@ hobo_lm <- hobo_steady %>%
                           TRUE ~ "Slope")) %>%
   mutate(estimate = round(estimate, digits = 5)) %>%
   pivot_wider(names_from = term, values_from = estimate)
+hobo_lm
 ```
+
+    ## # A tibble: 5 x 3
+    ## # Groups:   Hobo [5]
+    ##   Hobo  Intercept   Slope
+    ##   <fct>     <dbl>   <dbl>
+    ## 1 1.3      0.154  0.00037
+    ## 2 1.4      0.0812 0.0031 
+    ## 3 2        0.264  0.00318
+    ## 4 3       -0.112  0.00196
+    ## 5 4        0.0281 0.00056
 
 Calculate calibrated temperature based on linear model
 
