@@ -68,9 +68,9 @@ Block,Random.Number,Chamber.SetPoint,Clothing,Bedding,Posture,Emergency.Blanket,
 5,0.782102001,16,Nude,None,Log,FALSE,Slat,None,4,TRUE,FALSE,For calculating h,2/8/2022 17:47,2/8/2022 21:16,,
 5,0.782986983,16,Light,Light,Fetal,FALSE,Mattress,None,1,FALSE,FALSE,Posture in isolation,2/7/2022 16:19,2/7/2022 18:39,,IR_5985-IR_5987
 5,0.789698171,16,Light,Light,Log,FALSE,Mattress,HydropoweredMP,1,FALSE,FALSE,"Hydropowered mattress pad, baseline",2/6/2022 13:38,2/6/2022 21:38,,
-5,0.80207967,16,Heavy,Heavy,Fetal,TRUE,Mattress,HWBottle,1,FALSE,FALSE,"Hot water bottle, all passive",2/13/2022 12:27,2/13/2022 14:20,,IR_6019-IR_6023
+5,0.80207967,16,Heavy,Heavy,Fetal,TRUE,Mattress,HWBottlePelvis,1,FALSE,FALSE,"Hot water bottle, all passive",2/13/2022 12:27,2/13/2022 14:20,,IR_6019-IR_6023
 5,0.810793917,16,Light,Light,Log,FALSE,Mattress,None,1,FALSE,TRUE,"Heating, baseline",2/15/2022 9:00,2/15/2022 11:47,,
-5,0.810793917,16,Light,Light,Log,FALSE,Mattress,HWBottle,1,FALSE,TRUE,"Hot water bottle, baseline",2/15/2022 11:58,2/15/2022 13:25,,IR_6027-IR_6030
+5,0.810793917,16,Light,Light,Log,FALSE,Mattress,HWBottlePelvis,1,FALSE,TRUE,"Hot water bottle, baseline",2/15/2022 11:58,2/15/2022 13:25,,IR_6027-IR_6030
 5,0.820807123,16,Nude,None,Log,FALSE,Slat,None,3,TRUE,FALSE,For calculating h,2/7/2022 19:59,2/7/2022 20:50,,
 5,0.826272807,16,Light,Heavy,Log,FALSE,Mattress,None,1,FALSE,FALSE,Bedding in isolation,2/9/2022 20:54,2/10/2022 14:22,,IR_6011-IR_6015
 6,0,16,Light,Light,Log,FALSE,Mattress,ElectricMPHigh,2,FALSE,FALSE,,2/20/2022 15:21,2/20/2022 16:44,,
@@ -79,6 +79,10 @@ Block,Random.Number,Chamber.SetPoint,Clothing,Bedding,Posture,Emergency.Blanket,
 6,0.474982211,16,Light,Light,Log,FALSE,Mattress,HeatedBlanket,2,FALSE,FALSE,,2/22/2022 10:30,2/22/2022 13:23,,
 6,0.777638177,16,Heavy,Heavy,Fetal,TRUE,Mattress,HeatedBlanket,2,FALSE,FALSE,,2/22/2022 13:32,2/22/2022 17:10,,
 6,0.409785211,16,Heavy,Heavy,Fetal,TRUE,Mattress,ElectricMPHigh,2,FALSE,FALSE,,2/22/2022 17:11,2/22/2022 18:12,,
-6,0.924642432,16,Heavy,Heavy,Fetal,TRUE,Mattress,HydropoweredMP,2,FALSE,FALSE,,2/23/2022 11:56,,,
+6,0.924642432,16,Heavy,Heavy,Fetal,TRUE,Mattress,HydropoweredMP,2,FALSE,FALSE,,2/23/2022 11:56,2/23/2022 13:53,,
 6,0.384322374,16,Heavy,Heavy,Fetal,TRUE,Mattress,ElectricMPHigh,2,FALSE,FALSE,,2/22/2022 18:12,2/22/2022 18:45,,
-,,28,Nude,None,Starfish,FALSE,Mattress,HydropoweredMP,2,FALSE,FALSE,,2/24/2022 11:38,,,
+7,,28,Nude,None,Starfish,FALSE,Mattress,HydropoweredMP,2,FALSE,FALSE,,2/24/2022 11:38,2/24/2022 13:40,,
+7,,28,Light,Light,Log,FALSE,Mattress,HydropoweredMP,2,FALSE,FALSE,,2/24/2022 13:40,2/24/2022 17:00,,
+8,,16,Light,Light,Log,FALSE,Mattress,HWBottleFeet,1,FALSE,FALSE,,3/3/2022 13:38,3/3/2022 22:13,,
+8,,16,Light,Light,Log,FALSE,Mattress,HeatedBlanket,,FALSE,FALSE,,3/4/2022 14:14,3/4/2022 15:56,,
+,,16,Heavy,Heavy,Fetal,FALSE,Mattress,HeatedBlanket,,FALSE,FALSE,,3/4/2022 16:07,,,

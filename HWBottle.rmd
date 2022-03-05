@@ -69,7 +69,7 @@ for (i in 1:nrow(hwbottle_times)) {
 }
 
 hwbottle_plot <- hwbottle_data %>%
-  filter(BodySegment == "Pelvis" | BodySegment == "Chest" | BodySegment == "LThigh" | BodySegment == "RThigh" | BodySegment == "Back") %>%
+   filter(BodySegment == "Pelvis" | BodySegment == "Chest" | BodySegment == "LThigh" | BodySegment == "RThigh" | BodySegment == "Back" | BodySegment == "LFoot" | BodySegment == "RFoot") %>%
   pivot_longer(cols = starts_with("Metric."), names_to = "Metric", names_prefix = "Metric.", values_to = "Value") %>%
   mutate(Baseline = case_when(Baseline == TRUE ~ "Baseline",
                               Baseline == FALSE ~ "All Passive")) %>%
@@ -79,7 +79,7 @@ hwbottle_plot <- hwbottle_data %>%
 hwbottle_steady <- hwbottle_data %>%
   group_by(Baseline, BodySegment) %>%
   slice_tail(n = 20) %>%
-  filter(BodySegment == "Pelvis" | BodySegment == "Chest" | BodySegment == "LThigh" | BodySegment == "RThigh" | BodySegment == "Back") %>%
+  filter(BodySegment == "Pelvis" | BodySegment == "Chest" | BodySegment == "LThigh" | BodySegment == "RThigh" | BodySegment == "Back" | BodySegment == "LFoot" | BodySegment == "RFoot") %>%
   pivot_longer(cols = starts_with("Metric."), names_to = "Metric", names_prefix = "Metric.", values_to = "Value") %>%
   mutate(Baseline = case_when(Baseline == TRUE ~ "Baseline",
                               Baseline == FALSE ~ "All Passive")) %>%
@@ -103,7 +103,7 @@ HW Bottle temperature and power over time (full run)\
 ggplot(hwbottle_plot, aes(x = Time, y = Value)) +
   geom_line(aes(colour = BodySegment)) +
   facet_grid(Metric~Baseline, scales = "free") +
-  scale_colour_manual(values = plot_colors) +
+  # scale_colour_manual(values = plot_colors) +
   theme_custom() +
   ylab("") +
   xlab("Time")
@@ -114,7 +114,7 @@ HW Bottle temperature and power over time (last 10 minutes)\
 ggplot(hwbottle_steady, aes(x = Time, y = Value)) +
   geom_line(aes(colour = BodySegment)) +
   facet_grid(Metric~Baseline, scales = "free") +
-  scale_colour_manual(values = plot_colors) +
+  #scale_colour_manual(values = plot_colors) +
   theme_custom() +
   ylab("") +
   xlab("Time")
