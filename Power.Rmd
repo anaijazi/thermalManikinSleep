@@ -16,7 +16,7 @@ Load power data for all PCS\
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 data_dir <- "data/Power"
 
-colNames_hobo <- c("PCS", "Baseline", "Time", "Power", "Cycle")
+colNames_hobo <- c("Chamber.SetPoint", "PCS", "Baseline", "Time", "Power", "Cycle")
 data_files <- list.files(path = data_dir, pattern = "*.csv", full.names = TRUE)
 
 data_all <- lapply(data_files, read_csv, col_types = cols())
@@ -40,142 +40,22 @@ theme_custom = function() {
 plot_colors <- c("#4477AA", "#CCBB44", "#228833", "#EE6677", "#AA3377", "#66CCEE")
 ```
 
-
-
-## Electric mattress pad
-
-Plot power consumption of electric mattress pad over time\
-```{r echo=FALSE}
-ElectricMP_data <- PCS_data %>%
-  filter(str_detect(PCS, "ElectricMP")) %>%
-  filter(is.na(Cycle) == FALSE) %>%
-  group_by(PCS, Baseline) %>%
-  mutate(Timestep = 1:n()*5/60)
-
-ggplot(ElectricMP_data, aes(x = Timestep, y = Power)) +
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(PCS_data, aes(x = Time, y = Power)) +
   geom_line(aes(colour = PCS, linetype = Baseline)) +
-  scale_color_manual(values = plot_colors) +
-  scale_x_continuous(limits = c(0,10)) +
+  scale_x_datetime(limits = c(mdy_hms("1/1/2000 0:00:00"), mdy_hms("1/1/2000 0:10:00"))) +
+  facet_grid(Chamber.SetPoint~., scales = "free") +
   theme_custom() +
-  xlab("Time (minutes)") +
-  ylab("Power (W)")
-```
-\
-Plot autocorrelation function\
-ElectricMPLow_Baseline\
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-Baseline_ElectricMPLow <- ElectricMP_data %>%
-  filter(Baseline == "Baseline") %>%
-  filter(PCS == "ElectricMPLow")
-
-ggAcf(Baseline_ElectricMPLow$Power, lag.max = 40) + 
-  scale_y_continuous(limits = c(-0.5, 1)) +
-  theme_custom() + 
-  annotate("text", x = 16, y = 1, label = "16", colour = "blue") +
-  annotate("text", x = 32, y = 1, label = "32", colour = "blue")
-```
-\
-ElectricMPHigh_Baseline\
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-Baseline_ElectricMPHigh <- ElectricMP_data %>%
-  filter(Baseline == "Baseline") %>%
-  filter(PCS == "ElectricMPHigh")
-
-ggAcf(Baseline_ElectricMPHigh$Power, lag.max = 40) + 
-  scale_y_continuous(limits = c(-0.5, 1)) +
-  theme_custom() +
-  annotate("text", x = 16, y = 1, label = "16", colour = "blue") +
-  annotate("text", x = 32, y = 1, label = "32", colour = "blue")
-```
-\
-ElectricMPLow_AllPassive\
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-Passive_ElectricMPLow <- ElectricMP_data %>%
-  filter(Baseline == "All Passive") %>%
-  filter(PCS == "ElectricMPLow")
-
-ggAcf(Passive_ElectricMPLow$Power, lag.max = 40) + 
-  scale_y_continuous(limits = c(-0.5, 1)) +
-  theme_custom() + 
-  annotate("text", x = 16, y = 1, label = "16", colour = "blue") +
-  annotate("text", x = 32, y = 1, label = "32", colour = "blue")
-```
-\
-ElectricMP_AlHighlPassive\
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-Passive_ElectricMPHigh <- ElectricMP_data %>%
-  filter(Baseline == "All Passive") %>%
-  filter(PCS == "ElectricMPHigh")
-
-ggAcf(Passive_ElectricMPHigh$Power, lag.max = 40) +
-  scale_y_continuous(limits = c(-0.5, 1)) +
-  theme_custom() + 
-  annotate("text", x = 16, y = 1, label = "16", colour = "blue") +
-  annotate("text", x = 32, y = 1, label = "32", colour = "blue")
-```
-\
-Electric mattress pad power is periodic with a lag of 16 time steps, which equals 16*5 seconds or around 1 minute and 20 seconds.\
-
-Average power consumption in each cycle\
-```{r message=FALSE, warning=FALSE}
-ElectricMP_avg <- ElectricMP_data %>%
-  group_by(PCS, Baseline, Cycle) %>%
-  summarize(Mean.Power = mean(Power))
-```
-Plot average power consumption by mattress pad setting and manikin clothing/bedding. Use of heavy clothing and bedding reduces electric mattress pad power consumption by approximately 3 W.\
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-ggplot(ElectricMP_avg, aes(x = PCS, y = Mean.Power)) +
-  geom_boxplot(aes(fill = Baseline)) +
-  scale_fill_manual(values = plot_colors) +
-  theme_custom() 
-```
-\
-```{r message=FALSE, warning=FALSE}
-ElectricMP_avg <- ElectricMP_data %>%
-  group_by(PCS, Baseline) %>%
-  summarize(Mean.Power = mean(Power))
-ElectricMP_avg
-```
-
-## Heated blanket
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-HeatedBlanket_data <- PCS_data %>%
-  filter(str_detect(PCS, "HeatedBlanket")) %>%
-  group_by(Baseline) %>%
-  mutate(Timestep = 1:n()*5/60)
-
-ggplot(HeatedBlanket_data, aes(x = Timestep, y = Power)) +
-  geom_line(aes(colour = Baseline)) +
-  scale_color_manual(values = plot_colors) +
-  scale_x_continuous(limits = c(0,125)) +
-  theme_custom() +
-  xlab("Time (minutes)") +
-  ylab("Power (W)")
-```
-\
-Plot autocorrelation function\
-HeatedBlanket_Baseline\
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-Baseline_HeatedBlanket <- HeatedBlanket_data %>%
-  filter(Baseline == "Baseline")
-
-ggAcf(Baseline_HeatedBlanket$Power, lag.max = 720) +
-  scale_y_continuous(limits = c(-0.2, 1)) +
-  theme_custom()
-```
-\
-HeatedBlanket_AllPassive\
-```{r echo=FALSE, message=FALSE, warning=FALSE}
-Passive_HeatedBlanket <- HeatedBlanket_data %>%
-  filter(Baseline == "All Passive")
-
-ggAcf(Passive_HeatedBlanket$Power, lag.max = 720) +
-  scale_y_continuous(limits = c(-0.2, 1)) +
-  theme_custom()
+  guides(colour = guide_legend(nrow=2, byrow=TRUE)) +
+  scale_colour_manual(values = plot_colors)
 ```
 \
 Heated blanket power is not periodic. Check rolling mean at different intervals (k = 1, 2, 5, 10, 20, 40, 60 minutes).\
 ```{r message=FALSE, warning=FALSE}
+
+HeatedBlanket_data <- PCS_data %>%
+  filter(PCS == "HeatedBlanket")
+
 HeatedBlanket_rollmean <- HeatedBlanket_data %>%
   group_by(Baseline) %>%
   mutate(mean = mean(Power)) %>%
@@ -197,7 +77,7 @@ ggplot(HeatedBlanket_rollmean, aes(x = Time, y = rm)) +
   scale_colour_manual(values = c("#BBBBBB", "#B1A3B2", "#A68ca9", "#9b749f", "#8F5C96", "#83448D", "#762a83")) +
   facet_grid(.~Baseline, scales = "free") +
   xlab("") +
-  ylab("Rolling mean of power (W/m2)") +
+  ylab("Rolling mean of power (W)") +
   theme_custom()
 ```
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -206,9 +86,29 @@ ggplot(HeatedBlanket_rollmean, aes(x = k, y = rm)) +
   scale_fill_manual(values = c("#BBBBBB", "#B1A3B2", "#A68ca9", "#9b749f", "#8F5C96", "#83448D", "#762a83")) +
   facet_grid(.~Baseline, scales = "free") +
   xlab("k (minutes)") +
-  ylab("Rolling mean of power (W/m2)") +
+  ylab("Rolling mean of power (W)") +
   theme_custom()
 ```
 
-
+```{r message=FALSE, warning=FALSE}
+PCS_avg <- PCS_data %>%
+  group_by(Chamber.SetPoint, PCS, Baseline) %>%
+  summarise(Mean.Power = mean(Power)) %>%
+  mutate(Baseline = factor(Baseline, levels = c("All Passive", "Baseline"))) %>%
+  mutate(Mean.Power = round(Mean.Power))
+PCS_avg
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(PCS_avg, aes(x = reorder(PCS, Mean.Power), y = Mean.Power, group = Baseline)) +
+  geom_col(aes(fill = PCS, alpha = Baseline), position = "dodge") +
+  geom_text(aes(label = Mean.Power, group = Baseline), position = position_dodge(0.9), hjust = -0.25) +
+  theme_custom() +
+  guides(fill = guide_legend(nrow=2, byrow=TRUE)) +
+  scale_y_continuous(limits = c(0, 150)) +
+  scale_fill_manual(values = plot_colors) +
+  ylab("Mean Power (W)") +
+  xlab("") +
+  coord_flip() +
+  facet_grid(.~Chamber.SetPoint)
+```
 

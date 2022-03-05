@@ -17,7 +17,7 @@ Load power data for all PCS
 ``` r
 data_dir <- "data/Power"
 
-colNames_hobo <- c("PCS", "Baseline", "Time", "Power", "Cycle")
+colNames_hobo <- c("Chamber.SetPoint", "PCS", "Baseline", "Time", "Power", "Cycle")
 data_files <- list.files(path = data_dir, pattern = "*.csv", full.names = TRUE)
 
 data_all <- lapply(data_files, read_csv, col_types = cols())
@@ -31,63 +31,14 @@ PCS_data <- data_all %>%
   mutate(Baseline = factor(Baseline, levels = c("Baseline", "All Passive")))
 ```
 
-## Electric mattress pad
-
-Plot power consumption of electric mattress pad over time  
 ![](Power_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->  
-Plot autocorrelation function  
-ElectricMPLow\_Baseline  
-![](Power_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->  
-ElectricMPHigh\_Baseline  
-![](Power_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->  
-ElectricMPLow\_AllPassive  
-![](Power_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->  
-ElectricMP\_AlHighlPassive  
-![](Power_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->  
-Electric mattress pad power is periodic with a lag of 16 time steps,
-which equals 16\*5 seconds or around 1 minute and 20 seconds.  
-
-Average power consumption in each cycle  
-
-``` r
-ElectricMP_avg <- ElectricMP_data %>%
-  group_by(PCS, Baseline, Cycle) %>%
-  summarize(Mean.Power = mean(Power))
-```
-
-Plot average power consumption by mattress pad setting and manikin
-clothing/bedding. Use of heavy clothing and bedding reduces electric
-mattress pad power consumption by approximately 3 W.  
-![](Power_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->  
-
-``` r
-ElectricMP_avg <- ElectricMP_data %>%
-  group_by(PCS, Baseline) %>%
-  summarize(Mean.Power = mean(Power))
-ElectricMP_avg
-```
-
-    ## # A tibble: 4 x 3
-    ## # Groups:   PCS [2]
-    ##   PCS            Baseline    Mean.Power
-    ##   <chr>          <fct>            <dbl>
-    ## 1 ElectricMPHigh Baseline          50.1
-    ## 2 ElectricMPHigh All Passive       47.2
-    ## 3 ElectricMPLow  Baseline          17.0
-    ## 4 ElectricMPLow  All Passive       14.2
-
-## Heated blanket
-
-![](Power_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->  
-Plot autocorrelation function  
-HeatedBlanket\_Baseline  
-![](Power_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->  
-HeatedBlanket\_AllPassive  
-![](Power_files/figure-gfm/unnamed-chunk-14-1.png)<!-- -->  
 Heated blanket power is not periodic. Check rolling mean at different
 intervals (k = 1, 2, 5, 10, 20, 40, 60 minutes).  
 
 ``` r
+HeatedBlanket_data <- PCS_data %>%
+  filter(PCS == "HeatedBlanket")
+
 HeatedBlanket_rollmean <- HeatedBlanket_data %>%
   group_by(Baseline) %>%
   mutate(mean = mean(Power)) %>%
@@ -103,5 +54,31 @@ HeatedBlanket_rollmean <- HeatedBlanket_data %>%
   mutate(k = factor(k))
 ```
 
-![](Power_files/figure-gfm/unnamed-chunk-16-1.png)<!-- -->
-![](Power_files/figure-gfm/unnamed-chunk-17-1.png)<!-- -->
+![](Power_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
+![](Power_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+``` r
+PCS_avg <- PCS_data %>%
+  group_by(Chamber.SetPoint, PCS, Baseline) %>%
+  summarise(Mean.Power = mean(Power)) %>%
+  mutate(Baseline = factor(Baseline, levels = c("All Passive", "Baseline"))) %>%
+  mutate(Mean.Power = round(Mean.Power))
+PCS_avg
+```
+
+    ## # A tibble: 10 x 4
+    ## # Groups:   Chamber.SetPoint, PCS [5]
+    ##    Chamber.SetPoint PCS            Baseline    Mean.Power
+    ##               <dbl> <chr>          <fct>            <dbl>
+    ##  1               16 ElectricMPHigh Baseline            52
+    ##  2               16 ElectricMPHigh All Passive         48
+    ##  3               16 ElectricMPLow  Baseline            22
+    ##  4               16 ElectricMPLow  All Passive         21
+    ##  5               16 HeatedBlanket  Baseline            62
+    ##  6               16 HeatedBlanket  All Passive         65
+    ##  7               16 HydropoweredMP Baseline           133
+    ##  8               16 HydropoweredMP All Passive        112
+    ##  9               28 HydropoweredMP Baseline           119
+    ## 10               28 HydropoweredMP All Passive        125
+
+![](Power_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
