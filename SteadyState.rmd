@@ -1,0 +1,140 @@
+---
+title: "SteadyState"
+author: "Arfa Aijazi"
+date: "3/8/2022"
+output: html_document
+---
+Load libraries\
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lubridate)
+```
+
+Read thermal manikin data\
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+manikin_dir <- "data/Experiment/manikin"
+
+files_manikin <- list.files(path = manikin_dir, pattern = "*_Experiment.csv", full.names = TRUE)
+
+colNames_manikin <- read_csv("ColumnNames.csv", col_names = F, col_types = cols())
+
+data_manikin <- lapply(files_manikin, read_csv, skip = 5, col_names = colNames_manikin$X1, col_types = cols())
+merged_manikin <- reduce(data_manikin, full_join)
+  
+  
+data_manikin <- merged_manikin %>%
+  select(-ends_with(".Clo"), 
+         -ends_with(".Teq"), 
+         -ends_with(".PMV"), 
+         -ends_with(".PPD"), 
+         -ends_with(".SET"), 
+         -ends_with(".ET"), 
+         -starts_with("All"), 
+         -starts_with("GroupA"), 
+         -starts_with("GroupB"),
+         -Runtime) %>%
+  mutate(Time = mdy_hms(Time)) %>%
+  drop_na(Time) %>%
+  pivot_longer(cols = ends_with(".T") | ends_with(".P"),
+               names_to = c("BodySegment", "Metric"),
+               names_sep = "[.]") %>%
+  pivot_wider(names_from = Metric, names_prefix = "Metric.", values_from = value)
+
+rm(merged_manikin) 
+```
+```{r message=FALSE, warning=FALSE, include=FALSE}
+theme_custom = function() {
+  theme_minimal() %+replace%
+    theme(legend.position = "top") +
+    theme(panel.grid = element_blank()) +
+    theme(panel.background = element_rect(colour = "#BBBBBB"))
+}
+plot_colors <- c("#4477AA", "#CCBB44", "#228833", "#EE6677", "#AA3377", "#66CCEE")
+```
+
+Subset repeated cases
+```{r message=FALSE, warning=FALSE}
+all_times <- read_csv("data/ExperimentalMatrix.csv", col_types = cols()) %>%
+  mutate(Start.Time = mdy_hm(Start.Time)) %>%
+  mutate(End.Time = mdy_hm(End.Time)) %>%
+  mutate(Alias = paste(Chamber.SetPoint, Clothing, Bedding, Posture, Emergency.Blanket, Bed.Type, PCS, Repetition, sep = "_"))
+```
+
+
+```{r}
+all_data <- data.frame(Alias = character(),
+                       Chamber.SetPoint = double(),
+                       Clothing = character(),
+                       Repeated = logical(),
+                       Time = POSIXct(),
+                       BodySegment = character(),
+                       Metric.T = double(),
+                       Metric.P = double())
+
+for (i in 1:nrow(all_times)) {
+  subset_manikin <- data_manikin %>%
+    filter(between(Time, all_times$End.Time[i]-minutes(11), all_times$End.Time[i]-minutes(1))) %>%
+    mutate(Alias = all_times$Alias[i],
+           Chamber.SetPoint = all_times$Chamber.SetPoint[i],
+           Clothing = all_times$Clothing[i],
+           Repeated = all_times$Repeated[i])
+  
+  all_data <- full_join(all_data, subset_manikin)
+  
+}
+```
+
+
+```{r}
+all_data_plot <- all_data %>%
+  full_join(SurfaceArea) %>%
+  group_by(Chamber.SetPoint, Clothing, Alias, Time) %>%
+  summarise(T.Body = sum(Metric.T*SurfaceArea)/sum(SurfaceArea), P.Body = sum(Metric.P*SurfaceArea)/sum(SurfaceArea)) %>%
+  ungroup() %>%
+  group_by(Alias) %>%
+  mutate(Timestep = row_number()/2) %>%
+  filter(Chamber.SetPoint != 24) %>%
+  mutate(Chamber.SetPoint = factor(Chamber.SetPoint)) %>%
+  filter(Timestep <= 10)
+```
+
+```{r}
+ggplot(all_data_plot, aes(x = Timestep, y = T.Body, group = Alias)) + 
+  geom_line(aes(colour = Clothing, linetype = Chamber.SetPoint)) +
+  theme_custom() +
+  scale_color_manual(values = plot_colors) +
+  xlab("Time (minutes)") +
+  ylab("Temperature (deg C)")
+```
+
+```{r}
+ggplot(all_data_plot, aes(x = Timestep, y = P.Body, group = Alias)) + 
+  geom_line(aes(colour = Clothing, linetype = Chamber.SetPoint)) +
+  theme_custom() +
+  scale_color_manual(values = plot_colors) +
+  xlab("Time (minutes)") +
+  ylab("Power (W)")
+```
+# Steady State
+Definition of steady state condition: "less than 0.2 degC variation in body temperature over a 10 minute period".
+The body temperature is the surface area weighted average temperature. All experimental runs meet the threshold for steady state. 
+
+```{r}
+SurfaceArea <- read_csv("SurfaceArea.csv", col_types = cols())
+```
+
+```{r}
+all_data_ss <- all_data %>%
+  full_join(SurfaceArea) %>%
+  group_by(Alias, Time) %>%
+  summarise(T.Body = sum(Metric.T*SurfaceArea)/sum(SurfaceArea)) %>%
+  ungroup() %>%
+  group_by(Alias) %>%
+  mutate(Mean.T.Body = mean(T.Body)) %>%
+  ungroup() %>%
+  mutate(Deviation = T.Body - Mean.T.Body) %>%
+  group_by(Alias) %>%
+  summarise(Max.Deviation = max(Deviation)) %>%
+  mutate(SteadyState = ifelse(Max.Deviation < 0.2, T, F))
+
+```

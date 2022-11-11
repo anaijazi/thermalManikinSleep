@@ -1,0 +1,16 @@
+00:32:28:480 [WARN]	WGudeRequest::applyAutoDetectProxyAutoConfigSettings Failed to autodetect proxy settings. The operation completed successfully.
+, last error code = 0 
+00:32:28:482 [WARN]	proxy setting delay exceeds threshold: 1.630310 secs
+10:20:31:567 [WARN]	WGudeRequest::applyAutoDetectProxyAutoConfigSettings Failed to autodetect proxy settings. The operation completed successfully.
+, last error code = 0 
+10:20:31:567 [WARN]	proxy setting delay exceeds threshold: 0.543233 secs
+13:13:35:091 [WARN]	WGudeRequest::applyAutoDetectProxyAutoConfigSettings Failed to autodetect proxy settings. The operation completed successfully.
+, last error code = 0 
+14:13:35:250 [WARN]	WGudeRequest::applyAutoDetectProxyAutoConfigSettings Failed to autodetect proxy settings. The operation completed successfully.
+, last error code = 0 
+15:13:35:408 [WARN]	WGudeRequest::applyAutoDetectProxyAutoConfigSettings Failed to autodetect proxy settings. The operation completed successfully.
+, last error code = 0 
+16:13:35:557 [WARN]	WGudeRequest::applyAutoDetectProxyAutoConfigSettings Failed to autodetect proxy settings. The operation completed successfully.
+, last error code = 0 
+17:13:35:773 [WARN]	WGudeRequest::applyAutoDetectProxyAutoConfigSettings Failed to autodetect proxy settings. The operation completed successfully.
+, last error code = 0 

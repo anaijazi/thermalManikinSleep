@@ -1,16 +1,18 @@
 ---
-title: "Appendix: Hot water bottle"
+title: "HWBottle"
 author: "Arfa Aijazi"
 date: "2/28/2022"
 output: github_document
 ---
 
-Load libraries\
+Load libraries  
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(lubridate)
 ```
-Read thermal manikin data\
+
+
+Read thermal manikin data
 ```{r echo=TRUE, message=FALSE, warning=FALSE}
 manikin_dir <- "data/Experiment/manikin"
 
@@ -43,8 +45,8 @@ data_manikin <- merged_manikin %>%
 rm(merged_manikin) 
 ```
 
-Subset HW Bottle Data\
-```{r message=FALSE, warning=FALSE}
+Read Experimental Matrix
+```{r}
 hwbottle_times <- read_csv("data/ExperimentalMatrix.csv", col_types = cols()) %>%
   mutate(Start.Time = mdy_hm(Start.Time)) %>%
   mutate(End.Time = mdy_hm(End.Time)) %>%
@@ -52,7 +54,7 @@ hwbottle_times <- read_csv("data/ExperimentalMatrix.csv", col_types = cols()) %>
   filter(PCS == "HWBottle")
 ```
 
-```{r message=FALSE, warning=FALSE}
+```{r}
 hwbottle_data <- data.frame(Baseline = logical(),
                             Time = POSIXct(),
                             BodySegment = character(),
@@ -69,26 +71,13 @@ for (i in 1:nrow(hwbottle_times)) {
 }
 
 hwbottle_plot <- hwbottle_data %>%
-   filter(BodySegment == "Pelvis" | BodySegment == "Chest" | BodySegment == "LThigh" | BodySegment == "RThigh" | BodySegment == "Back" | BodySegment == "LFoot" | BodySegment == "RFoot") %>%
+  filter(BodySegment == "Pelvis" | BodySegment == "Chest" | BodySegment == "LThigh" | BodySegment == "RThigh" | BodySegment == "Back") %>%
   pivot_longer(cols = starts_with("Metric."), names_to = "Metric", names_prefix = "Metric.", values_to = "Value") %>%
   mutate(Baseline = case_when(Baseline == TRUE ~ "Baseline",
-                              Baseline == FALSE ~ "All Passive")) %>%
-  mutate(Metric = case_when(Metric == "T" ~ "Temperature (degC)",
-                            Metric == "P" ~ "Power (W/m2)"))
-
-hwbottle_steady <- hwbottle_data %>%
-  group_by(Baseline, BodySegment) %>%
-  slice_tail(n = 20) %>%
-  filter(BodySegment == "Pelvis" | BodySegment == "Chest" | BodySegment == "LThigh" | BodySegment == "RThigh" | BodySegment == "Back" | BodySegment == "LFoot" | BodySegment == "RFoot") %>%
-  pivot_longer(cols = starts_with("Metric."), names_to = "Metric", names_prefix = "Metric.", values_to = "Value") %>%
-  mutate(Baseline = case_when(Baseline == TRUE ~ "Baseline",
-                              Baseline == FALSE ~ "All Passive")) %>%
-  mutate(Metric = case_when(Metric == "T" ~ "Temperature (degC)",
-                            Metric == "P" ~ "Power (W/m2)"))
-  
+                              Baseline == FALSE ~ "All Passive"))
 ```
 
-```{r message=FALSE, warning=FALSE, include=FALSE}
+```{r include=FALSE}
 theme_custom = function() {
   theme_minimal() %+replace%
     theme(legend.position = "top") +
@@ -98,24 +87,32 @@ theme_custom = function() {
 plot_colors <- c("#4477AA", "#CCBB44", "#228833", "#EE6677", "#AA3377", "#66CCEE")
 ```
 
-HW Bottle temperature and power over time (full run)\  
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r}
 ggplot(hwbottle_plot, aes(x = Time, y = Value)) +
   geom_line(aes(colour = BodySegment)) +
   facet_grid(Metric~Baseline, scales = "free") +
-  # scale_colour_manual(values = plot_colors) +
+  scale_colour_manual(values = plot_colors) +
   theme_custom() +
   ylab("") +
-  xlab("Time")
+  xlab("")
+```
+```{r}
+hwbottle_steady <- hwbottle_data %>%
+  group_by(Baseline, BodySegment) %>%
+  slice_tail(n = 20) %>%
+  filter(BodySegment == "Pelvis" | BodySegment == "Chest" | BodySegment == "LThigh" | BodySegment == "RThigh" | BodySegment == "Back") %>%
+  pivot_longer(cols = starts_with("Metric."), names_to = "Metric", names_prefix = "Metric.", values_to = "Value") %>%
+  mutate(Baseline = case_when(Baseline == TRUE ~ "Baseline",
+                              Baseline == FALSE ~ "All Passive"))
+  
 ```
 
-HW Bottle temperature and power over time (last 10 minutes)\
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r}
 ggplot(hwbottle_steady, aes(x = Time, y = Value)) +
   geom_line(aes(colour = BodySegment)) +
   facet_grid(Metric~Baseline, scales = "free") +
-  #scale_colour_manual(values = plot_colors) +
+  scale_colour_manual(values = plot_colors) +
   theme_custom() +
   ylab("") +
-  xlab("Time")
+  xlab("")
 ```

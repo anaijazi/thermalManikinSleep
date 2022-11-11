@@ -1,0 +1,37 @@
+"Alias","ThermalEffect","u.ThermalEffect","Chamber.SetPoint","Clothing","Bedding","Posture","EmergencyBlanket","Bed","PCS","System","Abs.ThermalEffect"
+"16_Heavy_Heavy_Fetal_TRUE_Mattress_ElectricMPHigh",5.85324254830104,0.186722337535447,16,"Heavy","Heavy","Fetal","TRUE","Mattress","ElectricMPHigh","Active: Heating",5.85324254830104
+"16_Heavy_Heavy_Fetal_TRUE_Mattress_ElectricMPLow",6.11589042516491,0.107636140525824,16,"Heavy","Heavy","Fetal","TRUE","Mattress","ElectricMPLow","Active: Heating",6.11589042516491
+"16_Heavy_Heavy_Fetal_TRUE_Mattress_HeatedBlanket",6.80105417202963,0.151628449863282,16,"Heavy","Heavy","Fetal","TRUE","Mattress","HeatedBlanket","Active: Heating",6.80105417202963
+"16_Heavy_Heavy_Fetal_TRUE_Mattress_HeatedBlanketOff",5.44217646292197,0.108460700865184,16,"Heavy","Heavy","Fetal","TRUE","Mattress","HeatedBlanketOff","Active: Heating",5.44217646292197
+"16_Heavy_Heavy_Fetal_TRUE_Mattress_HWBottleFeet",5.30531893339642,0.153324539675654,16,"Heavy","Heavy","Fetal","TRUE","Mattress","HWBottleFeet","Active: Heating",5.30531893339642
+"16_Heavy_Heavy_Fetal_TRUE_Mattress_HWBottlePelvis",5.60656113186383,0.152691322060845,16,"Heavy","Heavy","Fetal","TRUE","Mattress","HWBottlePelvis","Active: Heating",5.60656113186383
+"16_Heavy_Heavy_Fetal_TRUE_Mattress_HydropoweredMP",6.49992224796651,0.151532594558421,16,"Heavy","Heavy","Fetal","TRUE","Mattress","HydropoweredMP","Active: Heating",6.49992224796651
+"16_Heavy_Heavy_Fetal_TRUE_Mattress_None",5.97780566182015,0.152163488369614,16,"Heavy","Heavy","Fetal","TRUE","Mattress","None","Passive",5.97780566182015
+"16_Heavy_Light_Log_FALSE_Mattress_None",1.88128769824072,0.110493709706487,16,"Heavy","Light","Log","FALSE","Mattress","None","Passive",1.88128769824072
+"16_Light_Heavy_Log_FALSE_Mattress_None",3.85582811030764,0.108744338779251,16,"Light","Heavy","Log","FALSE","Mattress","None","Passive",3.85582811030764
+"16_Light_Light_Fetal_FALSE_Mattress_None",0.798813287420614,0.112157576818518,16,"Light","Light","Fetal","FALSE","Mattress","None","Passive",0.798813287420614
+"16_Light_Light_Log_FALSE_Mattress_ElectricMPHigh",1.03031967827691,0.156926270124702,16,"Light","Light","Log","FALSE","Mattress","ElectricMPHigh","Active: Heating",1.03031967827691
+"16_Light_Light_Log_FALSE_Mattress_ElectricMPLow",0.513147684646926,0.157584954524756,16,"Light","Light","Log","FALSE","Mattress","ElectricMPLow","Active: Heating",0.513147684646926
+"16_Light_Light_Log_FALSE_Mattress_HeatedBlanket",4.29950762646595,0.188361715452514,16,"Light","Light","Log","FALSE","Mattress","HeatedBlanket","Active: Heating",4.29950762646595
+"16_Light_Light_Log_FALSE_Mattress_HeatedBlanketOff",3.00095920724075,0.109417180265961,16,"Light","Light","Log","FALSE","Mattress","HeatedBlanketOff","Active: Heating",3.00095920724075
+"16_Light_Light_Log_FALSE_Mattress_HWBottleFeet",0.532311712107283,0.111470271720121,16,"Light","Light","Log","FALSE","Mattress","HWBottleFeet","Active: Heating",0.532311712107283
+"16_Light_Light_Log_FALSE_Mattress_HWBottlePelvis",0.193231715058342,0.158095881549101,16,"Light","Light","Log","FALSE","Mattress","HWBottlePelvis","Active: Heating",0.193231715058342
+"16_Light_Light_Log_FALSE_Mattress_HydropoweredMP",1.7833550342679,0.155811711673942,16,"Light","Light","Log","FALSE","Mattress","HydropoweredMP","Active: Heating",1.7833550342679
+"16_Light_Light_Log_TRUE_Mattress_None",2.85175770884449,0.109357200072303,16,"Light","Light","Log","TRUE","Mattress","None","Passive",2.85175770884449
+"28_Light_Light_Log_FALSE_Mattress_CeilingFanHigh",-1.30868533303839,0.195344767381005,28,"Light","Light","Log","FALSE","Mattress","CeilingFanHigh","Active: Cooling",1.30868533303839
+"28_Light_Light_Log_FALSE_Mattress_CeilingFanLow",0.0690335148704513,0.188912067278909,28,"Light","Light","Log","FALSE","Mattress","CeilingFanLow","Active: Cooling",0.0690335148704513
+"28_Light_Light_Log_FALSE_Mattress_HydropoweredMP",-0.181403546132905,0.218886509498695,28,"Light","Light","Log","FALSE","Mattress","HydropoweredMP","Active: Cooling",0.181403546132905
+"28_Light_Light_Log_FALSE_Mattress_PedestalFanHigh",-1.6091305480327,0.201979942126889,28,"Light","Light","Log","FALSE","Mattress","PedestalFanHigh","Active: Cooling",1.6091305480327
+"28_Light_Light_Log_FALSE_Mattress_PedestalFanLow",-0.10578027786973,0.155390510853674,28,"Light","Light","Log","FALSE","Mattress","PedestalFanLow","Active: Cooling",0.10578027786973
+"28_Light_Light_Log_FALSE_Slat_None",-1.04875088270519,0.158604014419728,28,"Light","Light","Log","FALSE","Slat","None","Passive",1.04875088270519
+"28_Light_Light_Starfish_FALSE_Mattress_None",0.0891289628884842,0.112975486565654,28,"Light","Light","Starfish","FALSE","Mattress","None","Passive",0.0891289628884842
+"28_Light_None_Log_FALSE_Mattress_None",-1.0339748107248,0.112054114226112,28,"Light","None","Log","FALSE","Mattress","None","Passive",1.0339748107248
+"28_Light_None_Starfish_FALSE_Mattress_None",-1.21665293457396,0.119155342104654,28,"Light","None","Starfish","FALSE","Mattress","None","Passive",1.21665293457396
+"28_Nude_Light_Log_FALSE_Mattress_None",-0.0269183936509982,0.109660084216787,28,"Nude","Light","Log","FALSE","Mattress","None","Passive",0.0269183936509982
+"28_Nude_None_Starfish_FALSE_Mattress_CeilingFanHigh",-6.93006561416068,0.231443304778518,28,"Nude","None","Starfish","FALSE","Mattress","CeilingFanHigh","Active: Cooling",6.93006561416068
+"28_Nude_None_Starfish_FALSE_Mattress_CeilingFanLow",-2.7700873791382,0.226647215355515,28,"Nude","None","Starfish","FALSE","Mattress","CeilingFanLow","Active: Cooling",2.7700873791382
+"28_Nude_None_Starfish_FALSE_Mattress_HydropoweredMP",-2.97513964913022,0.186145837818099,28,"Nude","None","Starfish","FALSE","Mattress","HydropoweredMP","Active: Cooling",2.97513964913022
+"28_Nude_None_Starfish_FALSE_Mattress_None",-2.51529886632237,0.184031994423481,28,"Nude","None","Starfish","FALSE","Mattress","None","Passive",2.51529886632237
+"28_Nude_None_Starfish_FALSE_Mattress_PedestalFanHigh",-6.19836627968694,0.328925777297669,28,"Nude","None","Starfish","FALSE","Mattress","PedestalFanHigh","Active: Cooling",6.19836627968694
+"28_Nude_None_Starfish_FALSE_Mattress_PedestalFanLow",-3.51411140682156,0.195132997429763,28,"Nude","None","Starfish","FALSE","Mattress","PedestalFanLow","Active: Cooling",3.51411140682156
+"28_Nude_None_Starfish_FALSE_Slat_None",-4.54432655039283,0.20113549153728,28,"Nude","None","Starfish","FALSE","Slat","None","Passive",4.54432655039283

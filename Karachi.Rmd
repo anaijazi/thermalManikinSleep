@@ -1,0 +1,131 @@
+---
+title: "Karachi"
+author: "Arfa Aijazi"
+date: '2022-11-01'
+output: github_notebook
+---
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+# Load libraries
+library(tidyverse)
+library(lubridate)
+library(knitr)
+library(ggpubr)
+library(zoo)
+library(broom)
+library(scales)
+library(Metrics)
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+# Set plot theme and colors
+theme_custom = function() {
+  theme_minimal() %+replace%
+    theme(legend.position = "top") +
+    theme(panel.grid = element_blank()) +
+    theme(strip.background = element_blank()) +
+    theme(panel.border = element_blank()) +
+    theme(panel.background = element_blank()) +
+    theme(legend.title = element_blank()) +
+    #theme(axis.title = element_blank()) +
+    theme(text = element_text(size = 7, colour = "#000000"))
+}
+```
+
+```{r}
+# Read in metadata from Github as data table
+df_meta <- read_csv("https://github.com/CenterForTheBuiltEnvironment/ashrae-db-II/raw/master/v2.1.0/db_metadata.csv")
+
+# Read in database from Github as data table
+df_measurements <- read_csv("https://github.com/CenterForTheBuiltEnvironment/ashrae-db-II/raw/master/v2.1.0/db_measurements_v2.1.0.csv.gz")
+```
+```{r}
+# Subset records with indoor air temperature and meteorological data
+df_acm2 <- df_measurements %>%
+  filter(!is.na(ta) & 
+           (!is.na(t_out_isd)|!is.na(t_out)))
+
+# Collapse outdoor met data
+df_acm2 <- df_acm2 %>%
+  mutate(t_out_combined = case_when(!is.na(t_out_isd) ~ t_out_isd,
+                                    is.na(t_out_isd) & !is.na(t_out) ~ t_out,
+                                    TRUE ~ NA_real_)) %>%
+  select(-c(t_out_isd, t_out))
+
+# Add relevant parameters from metadata table
+df_acm2 <- df_meta %>%
+  select(building_id, region, country, city, building_type, cooling_type, records, climate) %>%
+  left_join(df_acm2, ., by = "building_id")
+
+# Subset records from multifamily buildings in hot arid or semi-arid climate
+df_karachi <- df_acm2 %>%
+  filter(building_type == "multifamily housing") %>%
+  filter(climate == "hot semi-arid" | climate == "desert (hot arid)") %>%
+  filter(cooling_type == "naturally ventilated") %>%
+  select(building_id, building_type, cooling_type, region, country, city, climate, timestamp, season, ta, top, rh, t_out_combined)
+```
+
+```{r}
+lm_karachi <- lm(ta ~ t_out_combined, data = df_karachi)
+summary(lm_karachi)
+
+a <- lm_karachi$coefficients[2]
+b <- lm_karachi$coefficients[1]
+r2 <- summary(lm_karachi)$r.squared
+MAE <- mae(df_karachi$ta, predict(lm_karachi))
+```
+
+
+```{r}
+ggplot(df_karachi, aes(x = t_out_combined, y = ta)) + 
+  xlim(9, 40) +
+  ylim(9, 40) +
+  xlab("Outdoor air temperature, To (C)") +
+  ylab("Indoor air temperature, Ta (C)") +
+  geom_point(colour = "#bbbbbb") +
+  geom_smooth(method = "lm", se = FALSE, colour = "#DDAA33") +
+  annotate("text", x = 10, y = 40, label = paste0("Ta = ", round(a, 1)," x To + ", round(b, 1)), colour = "#4d4d4d") +
+  annotate("text", x = 10, y = 38, label = paste0("MAE = ", round(MAE, 1), "C"), colour = "#4d4d4d") +
+  annotate("text", x = 10, y = 36, label = paste0("R2 = ", round(r2, 2)), colour = "#4d4d4d") +
+  annotate("text", x = 30, y = 10, label = paste0("Based on ", nrow(df_karachi), " observations of naturally ventilated multifamily housing in hot semi-arid climate"), colour = "#4d4d4d") +
+  theme_custom()
+
+ggsave("lm_Karachi.pdf", width = 4, height = 4, units = "in")
+```
+
+```{r}
+historical_file <- "Karachi_June2015.csv"
+karachi_June2015 <- read.csv(file = historical_file, header = TRUE, skip = 14) %>%
+  unite("Date", 1:2, sep = " ") %>%
+  rename(DBT = Dry.Bulb.Temperature..C.) %>%
+  select(Date, DBT) %>%
+  mutate(Date = parse_date_time(Date, "mdy_HM")) %>%
+  mutate(rollmean_DBT = rollmean(DBT, 168, fill = NA, align = "right")) %>%
+  drop_na() %>%
+  mutate(None = (0.9*DBT) + 6.2) %>%
+  mutate(Passive.CE = (-0.28*None) + 10.3) %>%
+  mutate(Passive.CE = ifelse(Passive.CE < 0, 0, Passive.CE)) %>%
+  mutate(Passive = None - Passive.CE) %>%
+  mutate(CeilingFan.CE = (-0.77*None) + 28.4) %>%
+  mutate(CeilingFan.CE = ifelse(CeilingFan.CE < 0, 0, CeilingFan.CE)) %>%
+  mutate(CeilingFan = None - CeilingFan.CE) %>%
+  mutate(comfort = (0.255*rollmean_DBT) + 18.9) %>%
+  mutate(comfort_max = comfort + 6.9/2) %>%
+  select(Date, comfort_max, None, Passive, CeilingFan) %>%
+  pivot_longer(None:CeilingFan, names_to = "Intervention", values_to = "Temperature") %>%
+  filter(between(Date, parse_date_time("2015-06-14 0:00", "ymd_HM"), parse_date_time("2015-06-27 0:00", "ymd_HM"))) %>%
+  mutate(Intervention = factor(Intervention, levels = c("None", "Passive", "CeilingFan")))
+```
+
+
+```{r}
+ggplot(karachi_June2015, aes(x = Date, y = Temperature)) + 
+  annotate("rect", xmin = parse_date_time("2015-06-17 0:00", "ymd_HM"), xmax = parse_date_time("2015-06-24 0:00", "ymd_HM"), ymin = -Inf, ymax = Inf, alpha = 0.2, fill = "red") +
+  annotate("text", x = parse_date_time("2015-06-17 12:00", "ymd_HM"), y = Inf, label = "Heat Wave") +
+  geom_line(aes(linetype = Intervention)) +
+  geom_line(aes(y = comfort_max), colour = "#9970AB") +
+  geom_hline(yintercept = 35.7) +
+  theme_custom()
+
+ggsave("KarachiHeatWave.pdf", width = 6.5, height = 3, units = "in")
+```

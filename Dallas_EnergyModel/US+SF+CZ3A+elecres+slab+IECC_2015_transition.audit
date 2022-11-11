@@ -1,0 +1,25 @@
+
+Conversion 9.5 => 9.6
+ Starting new Transition.audit
+ Will create new full IDFs
+ Will create new IDF lines with units where applicable
+ Will create new IDF lines leaving blank incoming fields as blank (no default fill)
+ Processing IDF -- C:\Users\anaij\OneDrive\Documents\Git\thermalManikinSleep\Dallas_EnergyModel\US+SF+CZ3A+elecres+slab+IECC_2015.idf
+   ** Warning ** Object=SimulationControl, entered with less than minimum number of fields.
+   **   ~~~   ** Attempting fill to minimum.
+   ** Warning ** Object=Sizing:Zone, name=living_unit1, entered with less than minimum number of fields.
+   **   ~~~   ** Attempting fill to minimum.
+
+Conversion 9.6 => 22.1
+ Starting new Transition.audit
+ Will create new full IDFs
+ Will create new IDF lines with units where applicable
+ Will create new IDF lines leaving blank incoming fields as blank (no default fill)
+ Processing IDF -- C:\Users\anaij\OneDrive\Documents\Git\thermalManikinSleep\Dallas_EnergyModel\US+SF+CZ3A+elecres+slab+IECC_2015.idf
+
+Conversion 22.1 => 22.2
+ Starting new Transition.audit
+ Will create new full IDFs
+ Will create new IDF lines with units where applicable
+ Will create new IDF lines leaving blank incoming fields as blank (no default fill)
+ Processing IDF -- C:\Users\anaij\OneDrive\Documents\Git\thermalManikinSleep\Dallas_EnergyModel\US+SF+CZ3A+elecres+slab+IECC_2015.idf

@@ -1,7 +1,7 @@
-Appendix: HOBO Calibration
+Appendix: HOBO Calibration and Uncertainty
 ================
 Arfa Aijazi
-2/26/2022
+3/13/2022
 
 Load libraries
 
@@ -9,6 +9,7 @@ Load libraries
 library(tidyverse)
 library(lubridate)
 library(broom)
+library(knitr)
 ```
 
 Load HOBO raw data
@@ -42,7 +43,8 @@ hobo_data <- data_merged %>%
   mutate(Hobo = as.numeric(Hobo)) %>%
   mutate(Time = case_when(Hobo == 4 ~ mdy_hm(Time),
                           TRUE ~ mdy_hms(Time))) %>%
-  select(-Temperature_F)
+  select(-Temperature_F) %>%
+  mutate(Temperature_C = round(Temperature_C, 3))
 
 rm(merged_calibration)
 rm(data_calibration)
@@ -99,6 +101,9 @@ hobo_lm <- hobo_steady %>%
                           TRUE ~ "Slope")) %>%
   mutate(estimate = round(estimate, digits = 5)) %>%
   pivot_wider(names_from = term, values_from = estimate)
+
+write_csv(hobo_lm, "HOBO_Calibration.csv")
+
 hobo_lm
 ```
 
@@ -106,11 +111,11 @@ hobo_lm
     ## # Groups:   Hobo [5]
     ##   Hobo  Intercept   Slope
     ##   <fct>     <dbl>   <dbl>
-    ## 1 1.3      0.154  0.00037
-    ## 2 1.4      0.0812 0.0031 
+    ## 1 1.3      0.153  0.00038
+    ## 2 1.4      0.0808 0.00312
     ## 3 2        0.264  0.00318
-    ## 4 3       -0.112  0.00196
-    ## 5 4        0.0281 0.00056
+    ## 4 3       -0.113  0.00198
+    ## 5 4        0.0290 0.00053
 
 Calculate calibrated temperature based on linear model
 
@@ -119,6 +124,7 @@ hobo_calibrate <- hobo_steady %>%
   left_join(hobo_lm) %>%
   mutate(Offset = Intercept + Temperature_C*Slope) %>%
   mutate(Temperature_C_calibrate = Temperature_C - Offset) %>%
+  mutate(Temperature_C_calibrate = round(Temperature_C_calibrate, 3)) %>%
   mutate(Difference.calibrated = Temperature_C_calibrate - steadyT)
 ```
 
@@ -131,4 +137,30 @@ Calibrated difference from set point temperature versus time step
 
 New difference from set point temperature versus set point temperature
 (during steady state)  
-![](hoboCalibration_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+![](hoboCalibration_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->  
+Plot of difference between calibrated temperature and set point by
+HOBO  
+![](hoboCalibration_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+  
+Compute standard deviation and standard uncertainty for each HOBO
+thermal sensor  
+
+``` r
+sd_hobo <- hobo_calibrate %>%
+  ungroup() %>%
+  group_by(Hobo) %>%
+  summarise(n = n(), sd = sd(Difference.calibrated)) %>%
+  mutate(u = sd/sqrt(n)) %>%
+  mutate(sd = round(sd, 3)) %>%
+  mutate(u = round(u, 4))
+kable(sd_hobo)
+```
+
+| Hobo |    n |    sd |     u |
+|:-----|-----:|------:|------:|
+| 1.3  | 1005 | 0.013 | 4e-04 |
+| 1.4  | 1005 | 0.009 | 3e-04 |
+| 2    | 1176 | 0.012 | 3e-04 |
+| 3    |  984 | 0.018 | 6e-04 |
+| 4    |  948 | 0.011 | 4e-04 |

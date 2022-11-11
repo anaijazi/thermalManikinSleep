@@ -1,18 +1,20 @@
 ---
-title: "Appendix: HOBO Calibration"
+title: "Appendix: HOBO Calibration and Uncertainty"
 author: "Arfa Aijazi"
-date: "2/26/2022"
+date: "3/13/2022"
 output: github_document
 ---
-Load libraries  
-```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+# Load libraries
 library(tidyverse)
 library(lubridate)
 library(broom)
+library(knitr)
 ```
 
-Load HOBO raw data  
-```{r echo=TRUE, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, include=FALSE}
+# Load HOBO raw data
 data_dir <- "calibration/hobo"
 data_merged <- list()
 
@@ -41,7 +43,8 @@ hobo_data <- data_merged %>%
   mutate(Hobo = as.numeric(Hobo)) %>%
   mutate(Time = case_when(Hobo == 4 ~ mdy_hm(Time),
                           TRUE ~ mdy_hms(Time))) %>%
-  select(-Temperature_F)
+  select(-Temperature_F) %>%
+  mutate(Temperature_C = round(Temperature_C, 3))
 
 rm(merged_calibration)
 rm(data_calibration)
@@ -49,8 +52,8 @@ rm(data_merged)
 rm(data_all)
 ```
 
-Subset HOBO data to steady state periods  
-```{r echo=TRUE, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, include=FALSE}
+# Subset HOBO data to steady state periods
 # Read start and stop times for each HOBO and set point
 startStop <- read_csv("calibration/startstop.csv", col_types = cols())
 
@@ -130,6 +133,9 @@ hobo_lm <- hobo_steady %>%
                           TRUE ~ "Slope")) %>%
   mutate(estimate = round(estimate, digits = 5)) %>%
   pivot_wider(names_from = term, values_from = estimate)
+
+write_csv(hobo_lm, "HOBO_Calibration.csv")
+
 hobo_lm
 ```
 
@@ -139,6 +145,7 @@ hobo_calibrate <- hobo_steady %>%
   left_join(hobo_lm) %>%
   mutate(Offset = Intercept + Temperature_C*Slope) %>%
   mutate(Temperature_C_calibrate = Temperature_C - Offset) %>%
+  mutate(Temperature_C_calibrate = round(Temperature_C_calibrate, 3)) %>%
   mutate(Difference.calibrated = Temperature_C_calibrate - steadyT)
 ```
 Calibrated temperature versus time step (during steady state)  
@@ -178,3 +185,28 @@ ggplot(hobo_calibrate, aes(x = steadyT, y = Difference.calibrated, gcroup = Hobo
   ylab("Calibrated difference (degC)") +
   scale_y_continuous(limits = c(-0.4, 0.4))
 ```
+\
+Plot of difference between calibrated temperature and set point by HOBO\
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(hobo_calibrate, aes(x = Difference.calibrated)) +
+  geom_density(aes(colour = Hobo),adjust = 10) +
+  theme_custom() +
+  scale_colour_manual(values = plot_colors) +
+scale_x_continuous(limits = c(-.1, 0.1))
+```
+
+\
+Compute standard  deviation and standard uncertainty for each HOBO thermal sensor\
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+sd_hobo <- hobo_calibrate %>%
+  ungroup() %>%
+  group_by(Hobo) %>%
+  summarise(n = n(), sd = sd(Difference.calibrated)) %>%
+  mutate(u = sd/sqrt(n)) %>%
+  mutate(sd = round(sd, 3)) %>%
+  mutate(u = round(u, 4))
+kable(sd_hobo)
+  
+```
+
+

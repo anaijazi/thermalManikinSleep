@@ -1,0 +1,30 @@
+Alias,Label,ThermalEffect,u.ThermalEffect,Chamber.SetPoint,Clothing,Bedding,Posture,EmergencyBlanket,Bed,PCS,System,Abs.ThermalEffect,Order
+16_Heavy_Heavy_Fetal_TRUE_Mattress_None,"Add clothing and bedding insulation, emergency blanket, fetal posture",5.977805662,0.152163488,16,Heavy,Heavy,Fetal,TRUE,Mattress,None,Passive,5.977805662,1
+16_Light_Heavy_Log_FALSE_Mattress_None,Add bedding insulation,3.85582811,0.108744339,16,Light,Heavy,Log,FALSE,Mattress,None,Passive,3.85582811,2
+16_Light_Light_Log_TRUE_Mattress_None,Add emergency blanket,2.851757709,0.1093572,16,Light,Light,Log,TRUE,Mattress,None,Passive,2.851757709,3
+16_Heavy_Light_Log_FALSE_Mattress_None,Add clothing insulation,1.881287698,0.11049371,16,Heavy,Light,Log,FALSE,Mattress,None,Passive,1.881287698,4
+16_Light_Light_Fetal_FALSE_Mattress_None,Change to fetal posture,0.798813287,0.112157577,16,Light,Light,Fetal,FALSE,Mattress,None,Passive,0.798813287,5
+16_Heavy_Heavy_Fetal_TRUE_Mattress_HeatedBlanket,Heating blanket (on),6.801054172,0.15162845,16,Heavy,Heavy,Fetal,TRUE,Mattress,HeatedBlanket,Active: Heating,6.801054172,6
+16_Heavy_Heavy_Fetal_TRUE_Mattress_HydropoweredMP,Hydropowered mattress pad,6.499922248,0.151532595,16,Heavy,Heavy,Fetal,TRUE,Mattress,HydropoweredMP,Active: Heating,6.499922248,7
+16_Heavy_Heavy_Fetal_TRUE_Mattress_ElectricMPHigh,Electric mattress pad,5.853242548,0.186722338,16,Heavy,Heavy,Fetal,TRUE,Mattress,ElectricMPHigh,Active: Heating,5.853242548,8
+16_Heavy_Heavy_Fetal_TRUE_Mattress_HWBottlePelvis,"Hot water bottle, pelvis",5.606561132,0.152691322,16,Heavy,Heavy,Fetal,TRUE,Mattress,HWBottlePelvis,Active: Heating,5.606561132,9
+16_Heavy_Heavy_Fetal_TRUE_Mattress_HeatedBlanketOff,Heated blanket (off),5.442176463,0.108460701,16,Heavy,Heavy,Fetal,TRUE,Mattress,HeatedBlanketOff,Active: Heating,5.442176463,10
+16_Heavy_Heavy_Fetal_TRUE_Mattress_HWBottleFeet,"Hot water bottle, feet",5.305318933,0.15332454,16,Heavy,Heavy,Fetal,TRUE,Mattress,HWBottleFeet,Active: Heating,5.305318933,11
+16_Light_Light_Log_FALSE_Mattress_HeatedBlanket,Heated blanket (on),4.299507626,0.188361715,16,Light,Light,Log,FALSE,Mattress,HeatedBlanket,Active: Heating,4.299507626,12
+16_Light_Light_Log_FALSE_Mattress_HeatedBlanketOff,Heated blanket (off),3.000959207,0.10941718,16,Light,Light,Log,FALSE,Mattress,HeatedBlanketOff,Active: Heating,3.000959207,13
+16_Light_Light_Log_FALSE_Mattress_HydropoweredMP,Hydropowered mattress pad,1.783355034,0.155811712,16,Light,Light,Log,FALSE,Mattress,HydropoweredMP,Active: Heating,1.783355034,14
+16_Light_Light_Log_FALSE_Mattress_ElectricMPHigh,Electric mattress pad,1.030319678,0.15692627,16,Light,Light,Log,FALSE,Mattress,ElectricMPHigh,Active: Heating,1.030319678,15
+16_Light_Light_Log_FALSE_Mattress_HWBottleFeet,"Hot water bottle, feet",0.532311712,0.111470272,16,Light,Light,Log,FALSE,Mattress,HWBottleFeet,Active: Heating,0.532311712,16
+16_Light_Light_Log_FALSE_Mattress_HWBottlePelvis,"Hot water bottle, pelvis",0.193231715,0.158095882,16,Light,Light,Log,FALSE,Mattress,HWBottlePelvis,Active: Heating,0.193231715,17
+28_Nude_None_Starfish_FALSE_Slat_None,"Remove clothing and bedding insulation, remove mattress, starfish posture",-4.54432655,0.201135492,28,Nude,None,Starfish,FALSE,Slat,None,Passive,4.54432655,18
+28_Nude_None_Starfish_FALSE_Mattress_None,"Remove clothing and bedding insulation, starfish posture",-2.515298866,0.184031994,28,Nude,None,Starfish,FALSE,Mattress,None,Passive,2.515298866,19
+28_Light_Light_Log_FALSE_Slat_None,Remove mattress,-1.048750883,0.158604014,28,Light,Light,Log,FALSE,Slat,None,Passive,1.048750883,20
+28_Light_None_Log_FALSE_Mattress_None,Remove bedding insulation,-1.033974811,0.112054114,28,Light,None,Log,FALSE,Mattress,None,Passive,1.033974811,21
+28_Light_Light_Starfish_FALSE_Mattress_None,Change to starfish posture,0.089128963,0.112975487,28,Light,Light,Starfish,FALSE,Mattress,None,Passive,0.089128963,22
+28_Nude_Light_Log_FALSE_Mattress_None,Remove clothing insulation,-0.026918394,0.109660084,28,Nude,Light,Log,FALSE,Mattress,None,Passive,0.026918394,23
+28_Nude_None_Starfish_FALSE_Mattress_CeilingFanHigh,Ceiling fan,-6.930065614,0.231443305,28,Nude,None,Starfish,FALSE,Mattress,CeilingFanHigh,Active: Cooling,6.930065614,24
+28_Nude_None_Starfish_FALSE_Mattress_PedestalFanHigh,Pedestal fan,-6.19836628,0.328925777,28,Nude,None,Starfish,FALSE,Mattress,PedestalFanHigh,Active: Cooling,6.19836628,25
+28_Nude_None_Starfish_FALSE_Mattress_HydropoweredMP,Hydropowered mattress pad,-2.975139649,0.186145838,28,Nude,None,Starfish,FALSE,Mattress,HydropoweredMP,Active: Cooling,2.975139649,26
+28_Light_Light_Log_FALSE_Mattress_PedestalFanHigh,Pedestal fan,-1.609130548,0.201979942,28,Light,Light,Log,FALSE,Mattress,PedestalFanHigh,Active: Cooling,1.609130548,27
+28_Light_Light_Log_FALSE_Mattress_CeilingFanHigh,Ceiling fan,-1.308685333,0.195344767,28,Light,Light,Log,FALSE,Mattress,CeilingFanHigh,Active: Cooling,1.308685333,28
+28_Light_Light_Log_FALSE_Mattress_HydropoweredMP,Hydropowered mattress pad,-0.181403546,0.218886509,28,Light,Light,Log,FALSE,Mattress,HydropoweredMP,Active: Cooling,0.181403546,29
