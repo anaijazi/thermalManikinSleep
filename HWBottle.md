@@ -51,11 +51,14 @@ hwbottle_times <- read_csv("data/ExperimentalMatrix.csv", col_types = cols()) %>
   mutate(Start.Time = mdy_hm(Start.Time)) %>%
   mutate(End.Time = mdy_hm(End.Time)) %>%
   mutate(Alias = paste(Chamber.SetPoint, Clothing, Bedding, Posture, Emergency.Blanket, Bed.Type, PCS, Repetition, sep = "_")) %>%
-  filter(PCS == "HWBottle")
+  filter(grepl("HWBottle", PCS)) %>%
+  mutate(Baseline = case_when(Clothing == "Light" ~ "Baseline",
+                              Clothing == "Heavy" ~ "All Passive"))
 ```
 
 ``` r
-hwbottle_data <- data.frame(Baseline = logical(),
+hwbottle_data <- data.frame(Baseline = character(),
+                            PCS = character(),
                             Time = POSIXct(),
                             BodySegment = character(),
                             Metric.T = double(),
@@ -64,33 +67,43 @@ hwbottle_data <- data.frame(Baseline = logical(),
 for (i in 1:nrow(hwbottle_times)) {
   subset_manikin <- data_manikin %>%
     filter(between(Time, hwbottle_times$Start.Time[i], hwbottle_times$End.Time[i]-minutes(1))) %>%
-    mutate(Baseline = hwbottle_times$Baseline[i])
+    mutate(Baseline = hwbottle_times$Baseline[i]) %>%
+    mutate(PCS = hwbottle_times$PCS[i])
   
   hwbottle_data <- full_join(hwbottle_data, subset_manikin)
     
 }
 
-hwbottle_plot <- hwbottle_data %>%
-  filter(BodySegment == "Pelvis" | BodySegment == "Chest" | BodySegment == "LThigh" | BodySegment == "RThigh" | BodySegment == "Back") %>%
-  pivot_longer(cols = starts_with("Metric."), names_to = "Metric", names_prefix = "Metric.", values_to = "Value") %>%
-  mutate(Baseline = case_when(Baseline == TRUE ~ "Baseline",
-                              Baseline == FALSE ~ "All Passive")) %>%
-  mutate(Metric = case_when(Metric == "T" ~ "Temperature (degC)",
-                            Metric == "P" ~ "Power (W/m2)"))
+hwbottle_all <- hwbottle_data %>%
+   filter(BodySegment == "Pelvis" | BodySegment == "Chest" | BodySegment == "LThigh" | BodySegment == "RThigh" | BodySegment == "LFoot" | BodySegment == "RFoot") %>%
+  group_by(Baseline, PCS, BodySegment) %>%
+  mutate(Timestep = row_number()*30) %>%
+  mutate(Timestep = Timestep/60) %>%
+  mutate(Position = case_when(PCS == "HWBottleFeet" ~ "Feet",
+                              PCS == "HWBottlePelvis" ~ "Pelvis"))
 
-hwbottle_steady <- hwbottle_data %>%
-  group_by(Baseline, BodySegment) %>%
-  slice_tail(n = 20) %>%
-  filter(BodySegment == "Pelvis" | BodySegment == "Chest" | BodySegment == "LThigh" | BodySegment == "RThigh" | BodySegment == "Back") %>%
-  pivot_longer(cols = starts_with("Metric."), names_to = "Metric", names_prefix = "Metric.", values_to = "Value") %>%
-  mutate(Baseline = case_when(Baseline == TRUE ~ "Baseline",
-                              Baseline == FALSE ~ "All Passive")) %>%
-  mutate(Metric = case_when(Metric == "T" ~ "Temperature (degC)",
-                            Metric == "P" ~ "Power (W/m2)"))
+hwbottle_120 <- hwbottle_all %>%
+  filter(Timestep <= 120)
+
+hwbottle_steady <- hwbottle_120 %>%
+  filter(between(Timestep, 25, 35))
 ```
 
-HW Bottle temperature and power over time (full run) 
+Temperature versus time (full run) 
+
 ![](HWBottle_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
-HW Bottle temperature and power over time (last 10 minutes)  
+Power versus time (full run)   
 ![](HWBottle_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+Temperature versus time (first 120 minutes (2 hours))   
+![](HWBottle_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+Power versus time (first 120 minutes (2 hours))   
+![](HWBottle_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+
+Temperature versus time (steady state (minutes 60-70)) 
+![](HWBottle_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+Power versus time (steady state (minutes 60-70)) 
+![](HWBottle_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->

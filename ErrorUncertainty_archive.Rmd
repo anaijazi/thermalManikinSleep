@@ -1,0 +1,317 @@
+---
+title: "Appendix: Error and Uncertainty"
+author: "Arfa Aijazi"
+date: "3/7/2022"
+output: github_document
+---
+
+Load libraries\
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lubridate)
+library(knitr)
+```
+
+Plot theme and colors\
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+theme_custom = function() {
+  theme_minimal() %+replace%
+    theme(legend.position = "top") +
+    theme(panel.grid = element_blank()) +
+    theme(panel.background = element_rect(colour = "#BBBBBB"))
+}
+plot_colors <- c("#4477AA", "#CCBB44", "#228833", "#EE6677", "#AA3377", "#66CCEE")
+```
+
+Read thermal manikin data\
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+manikin_dir <- "data/Experiment/manikin"
+
+files_manikin <- list.files(path = manikin_dir, pattern = "*_Experiment.csv", full.names = TRUE)
+
+colNames_manikin <- read_csv("ColumnNames.csv", col_names = F, col_types = cols())
+
+data_manikin <- lapply(files_manikin, read_csv, skip = 5, col_names = colNames_manikin$X1, col_types = cols())
+merged_manikin <- reduce(data_manikin, full_join)
+  
+  
+data_manikin <- merged_manikin %>%
+  select(-ends_with(".Clo"), 
+         -ends_with(".Teq"), 
+         -ends_with(".PMV"), 
+         -ends_with(".PPD"), 
+         -ends_with(".SET"), 
+         -ends_with(".ET"), 
+         -starts_with("All"), 
+         -starts_with("GroupA"), 
+         -starts_with("GroupB"),
+         -Runtime) %>%
+  mutate(Time = mdy_hms(Time)) %>%
+  drop_na(Time) %>%
+  pivot_longer(cols = ends_with(".T") | ends_with(".P"),
+               names_to = c("BodySegment", "Metric"),
+               names_sep = "[.]") %>%
+  pivot_wider(names_from = Metric, names_prefix = "Metric.", values_from = value)
+
+rm(merged_manikin) 
+```
+Read HOBO data
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+hobo_dir <- "data/Experiment/hobo"
+merged_hobo <- list()
+
+for (i in 1:4){
+  files_hobo <- list.files(path = hobo_dir, pattern = paste0("*_", i, ".csv"), full.names = TRUE)
+  
+  if(i == 1){
+    colNames_hobo <-c("Number", "Time", "Hobo_1.3", "Hobo_1.4", "HostConnected", "Stopped", "EndOfFile")
+  }
+  
+  else{
+    colNames_hobo <- c("Number", "Time", paste0("Hobo_",i), "HostConnected", "Stopped", "EndOfFile")
+  }
+  
+  data_hobo <- lapply(files_hobo, read_csv, skip = 2, col_names = colNames_hobo, col_types = list(.default = col_double(), Time = col_character(), HostConnected = col_character(), Stopped = col_character(), EndOfFile = col_character()))
+  merged_hobo[[i]] <-data_hobo %>%
+    reduce(full_join) %>%
+    select(-Number, -HostConnected, -Stopped, -EndOfFile) %>%
+    pivot_longer(cols = starts_with("Hobo_"), names_to = "Hobo", values_to = "Temperature_F")
+  
+}
+
+data_hobo <- merged_hobo %>%
+  reduce(full_join) %>%
+  mutate(Temperature_C = (Temperature_F-32)*5/9) %>%
+  mutate(Time = mdy_hms(Time)) %>%
+  mutate(Hobo = parse_number(Hobo)) %>%
+  select(-Temperature_F) %>%
+  mutate(Temperature_C = round(Temperature_C, 3))
+
+rm(merged_hobo) 
+```
+
+Read experimental matrix\
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+all_times <- read_csv("data/ExperimentalMatrix.csv", col_types = cols()) %>%
+  mutate(Start.Time = mdy_hm(Start.Time)) %>%
+  mutate(End.Time = mdy_hm(End.Time)) %>%
+  mutate(Alias = paste(Chamber.SetPoint, Clothing, Bedding, Posture, Emergency.Blanket, Bed.Type, PCS, Repetition, sep = "_"))
+```
+
+Remove last 1 minute of data collection to account for experimenter disturbance and select last 10 minutes of data collection\
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+all_manikin_data <- data.frame(Alias = character(),
+                       Repeated = logical(),
+                       Chamber.SetPoint = double(),
+                       Time = POSIXct(),
+                       BodySegment = character(),
+                       Metric.T = double(),
+                       Metric.P = double())
+
+all_hobo_data <- data.frame(Alias = character(),
+                       Repeated = logical(),
+                       Chamber.SetPoint = double(),
+                       Time = POSIXct(),
+                       Hobo = double(),
+                       Temperature_C = double())
+
+for (i in 1:nrow(all_times)) {
+  subset_manikin <- data_manikin %>%
+    filter(between(Time, all_times$End.Time[i]-minutes(11), all_times$End.Time[i]-minutes(1))) %>%
+    mutate(Alias = all_times$Alias[i],
+           Repeated = all_times$Repeated[i],
+           Chamber.SetPoint = all_times$Chamber.SetPoint[i])
+  
+    subset_hobo <- data_hobo %>%
+    filter(between(Time, all_times$End.Time[i]-minutes(11), all_times$End.Time[i]-minutes(1))) %>%
+    mutate(Alias = all_times$Alias[i],
+           Repeated = all_times$Repeated[i],
+           Chamber.SetPoint = all_times$Chamber.SetPoint[i])
+  
+  all_manikin_data <- full_join(all_manikin_data, subset_manikin)
+  all_hobo_data <- full_join(all_hobo_data, subset_hobo)
+}
+```
+# Thermal manikin data
+Uncertainty within experimental run. Computes standard deviation of temperature and power during 10 minutes of steady state condition. Considers all experimental cases.\
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+all_manikin_sd <- all_manikin_data %>%
+  group_by(Alias, BodySegment) %>%
+  summarise(sd.T = sd(Metric.T), sd.P = sd(Metric.P)) %>%
+  pivot_longer(cols = starts_with("sd."), names_to = "Metric", names_prefix = "sd.", values_to = "sd") %>%
+  group_by(BodySegment, Metric) %>%
+  summarise(mean.sd = mean(sd), min.sd = min(sd), max.sd = max(sd))
+```
+
+The mean, minimum, and maximum standard deviation for each body segment\
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(all_manikin_sd, aes(x = reorder(BodySegment, mean.sd))) +
+  geom_errorbar(aes(ymin = min.sd, ymax = max.sd), width = 0.2) +
+  geom_point(aes(y = mean.sd, colour = Metric), size = 3) +
+  facet_grid(.~Metric, scales = "free_x") +
+  theme_custom() +
+  theme(legend.position = "none") +
+  scale_colour_manual(values = plot_colors) +
+  xlab("") +
+  ylab("Standard deviation") +
+  coord_flip()
+```
+\
+The maximum standard deviation for temperature and power from any body segment\
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+all_max_manikin_sd <- all_manikin_sd %>%
+  group_by(Metric) %>%
+  summarise(max.sd = max(max.sd)) %>%
+  mutate(max.sd = round(max.sd, 1))
+
+kable(all_max_manikin_sd)
+```
+
+Uncertainty between repeated experimental runs (repeatability). Computes mean of temperature and power of each body segment during 10 minutes of steady state conditions and then computes standard deviation over repeated cases. Considers only cases repeated at least 3 times.\
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+repeated_manikin_sd <- all_manikin_data %>%
+  filter(Repeated == TRUE) %>%
+  group_by(Alias, BodySegment) %>%
+  summarise(Mean.T = mean(Metric.T), Mean.P = mean(Metric.P)) %>%
+  pivot_longer(cols = starts_with("Mean."), names_to = "Metric", names_prefix = "Mean.", values_to = "Mean") %>%
+  mutate(Alias = substr(Alias, 1, nchar(Alias)-2)) %>%
+  group_by(Alias, BodySegment, Metric) %>%
+  summarise(n = n(), sd = sd(Mean)) %>%
+  filter(n > 2) %>%
+  group_by(Alias, Metric) %>%
+  summarise(mean.sd = mean(sd), min.sd = min(sd), max.sd = max(sd))
+```
+  
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(repeated_manikin_sd, aes(x = reorder(Alias, mean.sd))) +
+  geom_errorbar(aes(ymin = min.sd, ymax = max.sd), width = 0.2) +
+  geom_point(aes(y = mean.sd, colour = Metric), size = 3) +
+  facet_grid(.~Metric, scales = "free_x") +
+  theme_custom() +
+  theme(legend.position = "none") +
+  scale_colour_manual(values = plot_colors) +
+  xlab("") +
+  ylab("Standard deviation") +
+  coord_flip()
+```
+\
+The maximum standard deviation for temperature and power from any body segment\
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+repeated_max_manikin_sd <- repeated_manikin_sd %>%
+  group_by(Metric) %>%
+  summarise(max.sd = max(max.sd)) %>%
+  mutate(max.sd = round(max.sd, 1))
+
+kable(repeated_max_manikin_sd)
+```
+# HOBO
+
+Load coefficients for linear model to calibrate HOBO temperatures (from hoboCalibration.Rmd)\
+```{r}
+hobo_lm <- read_csv("HOBO_Calibration.csv", col_types = cols())
+```
+
+Calibrate HOBO temperatures\
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+all_hobo_data_calibrate <- all_hobo_data %>%
+  left_join(hobo_lm) %>%
+  mutate(Offset = Intercept + Temperature_C*Slope) %>%
+  mutate(Temperature_C_calibrate = Temperature_C - Offset) %>%
+  select(Alias, Repeated, Chamber.SetPoint, Time, Hobo, Temperature_C_calibrate) %>%
+  mutate(Hobo_fct = factor(Hobo)) %>%
+  mutate(Temperature_C_calibrate = round(Temperature_C_calibrate, 3))
+```
+Visualize HOBO data\
+```{r}
+ggplot(all_hobo_data_calibrate, aes(x = Hobo_fct, y = Temperature_C_calibrate)) +
+  geom_boxplot(aes(fill = Hobo_fct)) +
+  facet_grid(.~Chamber.SetPoint) +
+  theme_custom() +
+  scale_fill_manual(values = plot_colors)
+```
+\
+Filter HOBO temperature measurements that are more than 3 degC different from the chamber setpoint\
+```{r}
+all_hobo_data_calibrate_3 <- all_hobo_data_calibrate %>%
+  filter(abs(Temperature_C_calibrate - Chamber.SetPoint) < 3)
+
+```
+
+```{r}
+ggplot(all_hobo_data_calibrate_3, aes(x = Hobo_fct, y = Temperature_C_calibrate)) +
+  geom_boxplot(aes(fill = Hobo_fct)) +
+  facet_grid(.~Chamber.SetPoint) +
+  theme_custom() +
+  scale_fill_manual(values = plot_colors)
+```
+\
+Uncertainty within experimental run. Computes standard deviation of temperature and power during 10 minutes of steady state condition. Considers all experimental cases.\
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+all_hobo_sd <- all_hobo_data_calibrate_3 %>%
+  drop_na(Temperature_C_calibrate) %>%
+  mutate(Hobo = factor(Hobo)) %>%
+  group_by(Alias, Hobo) %>%
+  summarise(sd.T = sd(Temperature_C_calibrate)) %>%
+  group_by(Hobo) %>%
+  summarise(mean.sd = mean(sd.T), min.sd = min(sd.T), max.sd = max(sd.T))
+```
+
+The mean, minimum, and maximum standard deviation for each body segment\
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(all_hobo_sd, aes(x = reorder(Hobo, mean.sd))) +
+  geom_errorbar(aes(ymin = min.sd, ymax = max.sd), width = 0.2) +
+  geom_point(aes(y = mean.sd), size = 3, colour = plot_colors[3]) +
+  theme_custom() +
+  theme(legend.position = "none") +
+  scale_colour_manual(values = plot_colors) +
+  xlab("") +
+  ylab("Standard deviation") +
+  coord_flip()
+```
+\
+The maximum standard deviation for temperature and power from any body segment\
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+all_max_hobo_sd <- all_hobo_sd %>%
+  summarise(max.sd = max(max.sd)) %>%
+  mutate(max.sd = round(max.sd, 1))
+
+kable(all_max_hobo_sd)
+```
+
+
+Uncertainty between repeated experimental runs (repeatability). Computes mean of temperature from each HOBO during 10 minutes of steady state conditions and then computes standard deviation over repeated cases. Considers only cases repeated at least 3 times.\
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+repeated_hobo_sd <- all_hobo_data_calibrate_3 %>%
+  filter(Repeated == TRUE) %>%
+  group_by(Alias, Hobo) %>%
+  summarise(Mean.T = mean(Temperature_C_calibrate)) %>%
+  mutate(Alias = substr(Alias, 1, nchar(Alias)-2)) %>%
+  group_by(Alias, Hobo) %>%
+  summarise(n = n(), sd = sd(Mean.T)) %>%
+  filter(n > 2) %>%
+  group_by(Alias) %>%
+  summarise(mean.sd = mean(sd), min.sd = min(sd), max.sd = max(sd))
+```
+  
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(repeated_hobo_sd, aes(x = reorder(Alias, mean.sd))) +
+  geom_errorbar(aes(ymin = min.sd, ymax = max.sd), width = 0.2) +
+  geom_point(aes(y = mean.sd), size = 3, colour = plot_colors[3]) +
+  theme_custom() +
+  theme(legend.position = "none") +
+  scale_colour_manual(values = plot_colors) +
+  xlab("") +
+  ylab("Standard deviation") +
+  coord_flip()
+```
+
+\
+The maximum standard deviation for temperature and power from any body segment\
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+repeated_max_hobo_sd <- repeated_hobo_sd %>%
+  summarise(max.sd = max(max.sd)) %>%
+  mutate(max.sd = round(max.sd, 1))
+
+kable(repeated_max_hobo_sd)
+```
+
