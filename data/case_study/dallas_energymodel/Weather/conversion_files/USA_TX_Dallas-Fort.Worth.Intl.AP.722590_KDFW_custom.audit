@@ -1,0 +1,42 @@
+ -EnergyPlus Weather Converter V8.1.0.005
+ -Input File Type=CST, with FileName=C:\Users\anaij\OneDrive\Desktop\Dallas_EnergyModel\Weather\conversion_files\USA_TX_Dallas-Fort.Worth.Intl.AP.722590_KDFW.csv
+ -Out of Range Data items will be corrected.
+ -***Definitions file=c:\users\anaij\onedrive\desktop\dallas_energymodel\weather\conversion_files\usa_tx_dallas-fort.worth.intl.ap.722590_kdfw.def
+ Def (Definitions) Location Processed Status
+ From Reading Definitions File, file=c:\users\anaij\onedrive\desktop\dallas_energymodel\weather\conversion_files\usa_tx_dallas-fort.worth.intl.ap.722590_kdfw.def
+ Location Latitude (InLat)	     32.90
+ Location Longitude (InLong)	    -97.02
+ Location Time Zone (InTime)	     -6.00
+ Location Elevation (InElev)	    171.00
+ Location WMO (InWMO)	 72259
+ Location City (City)	 Dallas                       
+ Location State/Province (StateProv)	 TX                 
+ Location Country (Country)	 USA                
+ Def (Definitions) Weather Data Processed Status
+ From Reading Definitions File, file=c:\users\anaij\onedrive\desktop\dallas_energymodel\weather\conversion_files\usa_tx_dallas-fort.worth.intl.ap.722590_kdfw.def
+ Weather Data - Number Intervals per Hour	    1
+ Weather Data - Time Hour Offset	      0.00
+ Weather Data - Input File Type	custom    
+ Def (Definitions) Miscellaneous Data Processed Status
+ From Reading Definitions File, file=c:\users\anaij\onedrive\desktop\dallas_energymodel\weather\conversion_files\usa_tx_dallas-fort.worth.intl.ap.722590_kdfw.def
+ Misc Data - Comments 1	Standard EPW Custom def format for reading EPW files in EnergyPlus Weather Converter                                                                                                                                                                                                                                                                                                                            
+ Misc Data - Source Data	EPW                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+ Def (Definitions) Data Control Data Processed Status
+ Note: Data Control only used in "Custom" input formats
+ From Reading Definitions File, file=c:\users\anaij\onedrive\desktop\dallas_energymodel\weather\conversion_files\usa_tx_dallas-fort.worth.intl.ap.722590_kdfw.def
+ Data Control - # Records to Skip	    8
+ Data Control - Max # Records to Read	 8784
+ Data Control - Missing Wind Direction Action	RANDOM    
+ -***Processing Definitions file(s) complete.
+ 
+Note ** Definitions taken from associated "def" file.
+ Warning ** Did not find WMO for matching with Design Conditions, looking for WMO= 72259
+ Illegal Data Element Name="liquid_precipitation_depth", will be skipped
+ Illegal Data Element Name="liquid_precipitation_quantity", will be skipped
+ Custom File Processing Details
+ Custom File, Number of Fields=	35
+ Delimited input, Delimiter Character=","
+ Input Name	Skip Field (t/f)	Used by EnergyPlus	Conversion Factor	Field (from) First Record (before conversion	minimum value	maximum value	missing value
+ year	F	n	1.000	[3]	N/A	N/A	-999999.0
+ month	F	y	1.000	[0.5]	1	12	-999999.0
+ day	F	y	1.000	[]	1	31	-999999.0

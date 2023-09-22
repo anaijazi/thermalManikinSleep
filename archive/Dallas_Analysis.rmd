@@ -1,0 +1,142 @@
+---
+title: "FurtherAnalysis"
+author: "Arfa Aijazi"
+date: '2022-11-15'
+output: github_notebook
+---
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+# Load libraries
+library(tidyverse)
+library(lubridate)
+library(knitr)
+library(ggpubr)
+library(zoo)
+library(forcats)
+```
+
+```{r message=FALSE, warning=FALSE, include=FALSE}
+# Set plot theme and colors
+theme_custom = function() {
+  theme_minimal() %+replace%
+    theme(legend.position = "top") +
+    theme(panel.grid = element_blank()) +
+    theme(strip.background = element_blank()) +
+    theme(panel.border = element_blank()) +
+    theme(panel.background = element_blank()) +
+    theme(legend.title = element_blank()) +
+    theme(axis.title.y = element_blank()) +
+    theme(text = element_text(size = 7, colour = "#000000"))
+}
+```
+
+```{r}
+# Load energy model outputs
+dalls_epoutput_file <- "./Dallas_EnergyModel/Dallas_Feb2021_Outage_NASA/Dallas_Feb2021_Outage_NASA.csv"
+dallas_epoutput <- read_csv(file = dalls_epoutput_file) 
+
+colnames(dallas_epoutput) <- c("Date.Time", "DBT", "T.Air", "T.Attic", "Electricity.Facility", "Electricity.Building", "Electricity.Zone", "Electricity.General", "Electricity.HVAC", "Electricity.Plant")
+
+dallas <- dallas_epoutput %>%
+  mutate(Date = str_extract(Date.Time, "^[^\\s]+")) %>%
+  mutate(Time = str_extract(Date.Time, "\\s.+")) %>%
+  mutate(Date = paste0(Date,"/2021")) %>%
+  mutate(Date.Time = paste(Date, Time, sep = " ")) %>%
+  mutate(Date.Time = parse_date_time(Date.Time, "mdy_HMS")) %>%
+  select(Date.Time, DBT, T.Air, Electricity.Facility) %>%
+  filter(between(Date.Time, parse_date_time("2021-02-11", "ymd"), parse_date_time("2021-02-23", "ymd"))) %>%
+  mutate(T.skin_Baseline = 32.74228) %>%
+  mutate(h.body_Baseline = 3.645669) %>%
+  mutate(Q_Baseline = h.body_Baseline*(T.skin_Baseline - T.Air)) %>%
+  mutate(h.cal_Baseline = 7.976792) %>%
+  mutate(T.eq_Baseline = T.skin_Baseline - (Q_Baseline/h.cal_Baseline)) %>%
+  mutate(T.skin_Passive = 34.60110) %>%
+  mutate(h.body_Passive = 1.341360) %>%
+  mutate(Q_Passive = h.body_Passive*(T.skin_Passive - T.Air)) %>%
+  mutate(h.cal_Passive = 7.621755) %>%
+  mutate(T.eq_Passive = T.skin_Passive - (Q_Passive/h.cal_Passive)) %>%
+  mutate(thermal.effect_Passive = T.eq_Passive - T.eq_Baseline) %>%
+  mutate(thermal.effect_Passive = ifelse(Electricity.Facility == 0, thermal.effect_Passive, 0)) %>%
+  mutate(thermal.effect_Passive = ifelse(hour(Date.Time) >= 22 | hour(Date.Time) < 7, thermal.effect_Passive, 0)) %>%
+  mutate(T.Air_Passive = T.Air + thermal.effect_Passive) %>%
+  mutate(T.skin_HeatedBlanket = 34.05160) %>%
+  mutate(h.body_HeatedBlanket = 1.992226) %>%
+  mutate(Q_HeatedBlanket = h.body_HeatedBlanket*(T.skin_HeatedBlanket - T.Air)) %>%
+  mutate(h.cal_HeatedBlanket = 7.976792) %>%
+  mutate(T.eq_HeatedBlanket = T.skin_HeatedBlanket - (Q_HeatedBlanket/h.cal_HeatedBlanket)) %>%
+  mutate(thermal.effect_HeatedBlanket = T.eq_HeatedBlanket - T.eq_Baseline) %>%
+  mutate(thermal.effect_HeatedBlanket = ifelse(Electricity.Facility == 0, thermal.effect_HeatedBlanket, 0)) %>%
+  mutate(thermal.effect_HeatedBlanket = ifelse(hour(Date.Time) >= 22 | hour(Date.Time) < 7, thermal.effect_HeatedBlanket, 0)) %>%
+  mutate(T.Air_HeatedBlanket = T.Air + thermal.effect_HeatedBlanket) %>%
+  mutate(T.skin_HeatedBlanketPassive = 34.84524) %>%
+  mutate(h.body_HeatedBlanketPassive = 1.120498) %>%
+  mutate(Q_HeatedBlanketPassive = h.body_HeatedBlanketPassive*(T.skin_HeatedBlanketPassive - T.Air)) %>%
+  mutate(h.cal_HeatedBlanketPassive = 7.621755) %>%
+  mutate(T.eq_HeatedBlanketPassive = T.skin_HeatedBlanketPassive - (Q_HeatedBlanketPassive/h.cal_HeatedBlanketPassive)) %>%
+  mutate(thermal.effect_HeatedBlanketPassive = T.eq_HeatedBlanketPassive - T.eq_Baseline) %>%
+  mutate(thermal.effect_HeatedBlanketPassive = ifelse(Electricity.Facility == 0, thermal.effect_HeatedBlanketPassive, 0)) %>%
+  mutate(thermal.effect_HeatedBlanketPassive = ifelse(hour(Date.Time) >= 22 | hour(Date.Time) < 7, thermal.effect_HeatedBlanketPassive, 0)) %>%
+  mutate(T.Air_HeatedBlanketPassive = T.Air + thermal.effect_HeatedBlanketPassive)
+```
+
+```{r}
+dallas_exposure <- dallas %>%
+  select(Date.Time, starts_with("T.Air")) %>%
+  filter(hour(Date.Time) >= 22 | hour(Date.Time) < 7) %>%
+  rename(T.Air_None = T.Air) %>%
+  pivot_longer(!Date.Time, names_to = "Type", values_to = "Temperature") %>%
+  mutate(exposure = 18 - Temperature) %>%
+  mutate(exposure = ifelse(exposure > 0, exposure, 0)) %>%
+  group_by(Type) %>%
+  mutate(Type = factor(Type, levels = rev(c("DBT", "T.Air_None", "T.Air_Passive", "T.Air_HeatedBlanket", "T.Air_HeatedBlanketPassive")))) %>%
+  summarise(exposure = sum(exposure))
+
+dallas_exposure <- dallas_exposure %>%
+  arrange(desc(exposure)) %>%
+  mutate(percent.reduction = (exposure-dallas_exposure$exposure[1])/dallas_exposure$exposure[1]*100)
+  
+
+dallas_exposure$Type2 = c("None", "Active", "Passive", "Passive + Active")
+dallas_exposure$Type2 = factor(dallas_exposure$Type2, levels = c("None", "Passive", "Active", "Passive + Active"))
+
+dallas_exposure$Label = c("None", "Heated blanket (on)", "Passive combination", "Passive combination + Heated blanket")
+
+dallas_exposure <- dallas_exposure %>%
+  mutate(Label = fct_reorder(Label, exposure))
+
+dallas_exposure$percent.reduction[1] = NA
+
+
+ggplot(dallas_exposure, aes(x = Label, y = exposure)) + 
+  geom_col(aes(fill = Type2)) +
+  geom_text(aes(label = round(percent.reduction)), hjust = -0.5) +
+  scale_fill_manual(values = c("#bbbbbb", "#ee833d", "#59abb7", "#495893")) +
+  scale_y_continuous(breaks = seq(0, 500, 100)) +
+  ylab("Sleep time cold exposure (degree-hours)") +
+  theme_custom() +
+  coord_flip() 
+  
+```
+
+
+```{r}
+dallas_plot <- dallas %>%
+  select(Date.Time, DBT, T.Air, T.Air_Passive) %>%
+  rename(T.Air_None = T.Air) %>%
+  pivot_longer(!Date.Time, names_to = "Type", values_to = "Temperature") %>%
+  mutate(Type = factor(Type, levels = c("DBT", "T.Air_None", "T.Air_Passive")))
+
+
+ggplot(dallas_plot, aes(x = Date.Time, y = Temperature)) +
+  annotate("rect", xmin = parse_date_time("2021-02-14 1:00", "ymd_HM"), xmax = parse_date_time("2021-02-20 0:00", "ymd_HM"), ymin = -Inf, ymax = Inf, alpha = 0.2, fill = "#bbbbbb") +
+  annotate("text", x = parse_date_time("2021-02-14 12:00", "ymd_HM"), y = Inf, label = "Power outage") +
+  geom_line(aes(linetype = Type, colour = Type)) + 
+  scale_colour_manual(values = c("#d1e5f0", "#000000", "#ee833d", "#59abb7", "#495893")) +
+  geom_hline(yintercept = 18, linewidth = 0.25, colour = "#e7d4e8") + 
+  xlim(c(parse_date_time("2021-02-11", "ymd"), parse_date_time("2021-02-23", "ymd"))) +
+  theme_custom()
+
+ggsave("Dallas_plot.pdf", width = 4, height = 3, units = "in")
+```
+
