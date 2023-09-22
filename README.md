@@ -1,7 +1,5 @@
----
-title: "Passive and low-energy strategies to improve sleep thermal comfort and energy resiliency during heat waves and cold snaps"
-output: html_document
----
+# Passive and low-energy strategies to improve sleep thermal comfort and energy resiliency during heat waves and cold snaps
+
 [Arfa Aijazi](https://github.com/anaijazi), [Thomas Parkinson](https://github.com/tom-parkinson), [Stefano Schiavon](https://github.com/stefanoschiavon), and Hui Zhang
 
 ## Background
