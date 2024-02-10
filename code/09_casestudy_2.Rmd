@@ -1,0 +1,210 @@
+---
+title: "Case Study Analysis pt 2"
+author: "Arfa Aijazi"
+date: "2023-12-11"
+output: html_document
+---
+¸¸¸¸¸¸¸¸¸¸¸¸´This script completes 
+
+### Setup
+Load libraries
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lubridate)
+library(knitr)
+library(zoo)
+library(forcats)
+library(gridExtra)
+library(Metrics)
+library(comf)
+library(ggpubr)
+```
+
+Set plot theme and colors
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+theme_custom = function() {
+  theme_minimal() %+replace%
+    theme(legend.position = "top") +
+    theme(panel.grid = element_blank()) +
+    theme(strip.background = element_blank()) +
+    theme(panel.border = element_blank()) +
+    theme(panel.background = element_blank()) +
+    theme(legend.title = element_blank()) +
+    theme(text = element_text(size = 7, colour = "#000000")) +
+    theme(plot.margin = margin(t = 0, r = 0.1, b = 0, l = 0.1))
+}
+```
+
+```{r}
+dallas_energy <- read_csv("../data/case_study/dallas_energymodel/EnergyAnalysis/Compiled_TemperatureEnergy.csv")
+
+dallas_long <- dallas_energy %>%
+  pivot_longer(cols = !Date.time, names_to = c("Metric", "Weather.File", "Setpoint", "Intervention", "Sizing"), names_sep = "_") %>%
+  separate_wider_delim(Date.time, delim = "  ", names = c("MD", "HMS")) %>%
+  mutate(MDY = paste0(MD,"/2021")) %>%
+  mutate(MDY_HMS = paste(MDY,HMS,sep = " ")) %>%
+  select(-MD, -MDY, -HMS) %>%
+  mutate(MDY_HMS = mdy_hms(MDY_HMS)) %>%
+  filter(MDY_HMS > parse_date_time("2021-02-13 18:00:00", "ymd_HMS")) %>%
+  filter(MDY_HMS < parse_date_time("2021-02-14 08:00:00", "ymd_HMS"))
+
+dallas_outside <- dallas_long %>%
+  filter(Metric == "T.Outdoor") %>%
+ pivot_wider(names_from = Weather.File, values_from = value)
+
+dallas_22 <- dallas_long %>%
+  filter(Setpoint == 22) %>%
+  pivot_wider(names_from = Metric, values_from = value)
+
+dallas_comparison <- dallas_long %>%
+  filter(Weather.File == "KDFW") %>%
+  filter(Metric != "T.Outdoor") %>%
+  pivot_wider(names_from = Metric, values_from = value)
+
+dallas_passivecombo <- dallas_long %>%
+  filter(Intervention == "PassiveCombo") %>%
+  pivot_wider(names_from = Metric, values_from = value) %>%
+  mutate(T.skin_Baseline = 32.74228) %>%
+  mutate(h.body_Baseline = 3.645669) %>%
+  mutate(Q_Baseline = h.body_Baseline*(T.skin_Baseline - T.Indoor)) %>%
+  mutate(h.cal_Baseline = 7.976792) %>%
+  mutate(T.eq_Baseline = T.skin_Baseline - (Q_Baseline/h.cal_Baseline)) %>%
+  mutate(T.skin_Passive = 34.60110) %>%
+  mutate(h.body_Passive = 1.341360) %>%
+  mutate(Q_Passive = h.body_Passive*(T.skin_Passive - T.Indoor)) %>%
+  mutate(h.cal_Passive = 7.621755) %>%
+  mutate(T.eq_Passive = T.skin_Passive - (Q_Passive/h.cal_Passive)) %>%
+  mutate(thermal.effect_Passive = T.eq_Passive - T.eq_Baseline) %>%
+  mutate(thermal.effect_Passive = ifelse(MDY_HMS < parse_date_time("2021-02-13 22:00:00", "ymd_HMS"), 0, thermal.effect_Passive)) %>%
+  mutate(T.Indoor_adj = T.Indoor + thermal.effect_Passive) %>%
+  mutate(Energy_adj = Energy)
+  
+dallas_heatedblanket <- dallas_long %>%
+  filter(Intervention == "HeatedBlanket") %>%
+  pivot_wider(names_from = Metric, values_from = value) %>%
+   mutate(T.skin_Baseline = 32.74228) %>%
+  mutate(h.body_Baseline = 3.645669) %>%
+  mutate(Q_Baseline = h.body_Baseline*(T.skin_Baseline - T.Indoor)) %>%
+  mutate(h.cal_Baseline = 7.976792) %>%
+  mutate(T.eq_Baseline = T.skin_Baseline - (Q_Baseline/h.cal_Baseline)) %>%
+  mutate(T.skin_HeatedBlanket = 34.05160) %>%
+  mutate(h.body_HeatedBlanket = 1.992226) %>%
+  mutate(Q_HeatedBlanket = h.body_HeatedBlanket*(T.skin_HeatedBlanket - T.Indoor)) %>%
+  mutate(h.cal_HeatedBlanket = 7.976792) %>%
+  mutate(T.eq_HeatedBlanket = T.skin_HeatedBlanket - (Q_HeatedBlanket/h.cal_HeatedBlanket)) %>%
+  mutate(thermal.effect_HeatedBlanket = T.eq_HeatedBlanket - T.eq_Baseline) %>%
+  mutate(thermal.effect_HeatedBlanket = ifelse(MDY_HMS < parse_date_time("2021-02-13 22:00:00", "ymd_HMS"), 0, thermal.effect_HeatedBlanket)) %>%
+  mutate(T.Indoor_adj = T.Indoor + thermal.effect_HeatedBlanket) %>%
+  mutate(Energy_adj = ifelse(MDY_HMS > parse_date_time("2021-02-13 22:00:00", "ymd_HMS"), Energy + 590400, Energy))
+
+dallas_heatedblanketpassive <- dallas_long %>%
+  filter(Intervention == "HeatedBlanketPassiveCombo") %>%
+  pivot_wider(names_from = Metric, values_from = value) %>%
+   mutate(T.skin_Baseline = 32.74228) %>%
+  mutate(h.body_Baseline = 3.645669) %>%
+  mutate(Q_Baseline = h.body_Baseline*(T.skin_Baseline - T.Indoor)) %>%
+  mutate(h.cal_Baseline = 7.976792) %>%
+  mutate(T.eq_Baseline = T.skin_Baseline - (Q_Baseline/h.cal_Baseline)) %>%
+  mutate(T.skin_HeatedBlanketPassive = 34.84524) %>%
+  mutate(h.body_HeatedBlanketPassive = 1.120498) %>%
+  mutate(Q_HeatedBlanketPassive = h.body_HeatedBlanketPassive*(T.skin_HeatedBlanketPassive - T.Indoor)) %>%
+  mutate(h.cal_HeatedBlanketPassive = 7.621755) %>%
+  mutate(T.eq_HeatedBlanketPassive = T.skin_HeatedBlanketPassive - (Q_HeatedBlanketPassive/h.cal_HeatedBlanketPassive)) %>%
+  mutate(thermal.effect_HeatedBlanketPassive = T.eq_HeatedBlanketPassive - T.eq_Baseline) %>%
+  mutate(thermal.effect_HeatedBlanketPassive = ifelse(MDY_HMS < parse_date_time("2021-02-13 22:00:00", "ymd_HMS"), 0, thermal.effect_HeatedBlanketPassive)) %>%
+  mutate(T.Indoor_adj = T.Indoor + thermal.effect_HeatedBlanketPassive) %>%
+  mutate(Energy_adj = ifelse(MDY_HMS > parse_date_time("2021-02-13 22:00:00", "ymd_HMS"), Energy + 590400, Energy))
+
+dallas_combined <- dallas_passivecombo %>%
+  full_join(dallas_heatedblanket) %>%
+  full_join(dallas_heatedblanketpassive) %>%
+  select(MDY_HMS, Weather.File, Setpoint, Intervention, Sizing, T.Indoor, Energy, T.Indoor_adj, Energy_adj) %>%
+  full_join(dallas_comparison) %>%
+  mutate(Energy_adj = ifelse(is.na(Energy_adj), Energy, Energy_adj)) %>%
+  mutate(T.Indoor_adj = ifelse(is.na(T.Indoor_adj), T.Indoor, T.Indoor_adj))
+
+dallas_combined_stats <- dallas_combined %>%
+  filter(MDY_HMS > parse_date_time("2021-02-13 22:00:00", "ymd_HMS")) %>%
+  group_by(Setpoint, Intervention) %>%
+  summarise(Total_energy = sum(Energy), Peak_energy = max(Energy)) %>%
+  ungroup() %>%
+  mutate(Setpoint = as.double(Setpoint)) %>%
+  arrange(-Setpoint) %>%
+  mutate(Total_percdiff = 100*(Total_energy - dallas_combined_stats$Total_energy[1])/dallas_combined_stats$Total_energy[1]) %>%
+  mutate(Peak_percdiff = 100*(Peak_energy - dallas_combined_stats$Peak_energy[1])/dallas_combined_stats$Peak_energy[1]) 
+
+# Adjusts for energy consumption of heated blanket, assume 4 used continuously, each is 41 W. 
+dallas_combined_stats_adj <- dallas_combined %>%
+  filter(MDY_HMS > parse_date_time("2021-02-13 22:00:00", "ymd_HMS")) %>%
+  group_by(Setpoint, Intervention) %>%
+  summarise(Total_energy = sum(Energy_adj), Peak_energy = max(Energy_adj)) %>%
+  ungroup() %>%
+  mutate(Setpoint = as.double(Setpoint)) %>%
+  arrange(-Setpoint) %>%
+  mutate(Total_percdiff = 100*(Total_energy - dallas_combined_stats$Total_energy[1])/dallas_combined_stats$Total_energy[1]) %>%
+  mutate(Peak_percdiff = 100*(Peak_energy - dallas_combined_stats$Peak_energy[1])/dallas_combined_stats$Peak_energy[1]) %>%
+  pivot_longer(c(ends_with("_energy"), ends_with("_percdiff")), names_to = c("Type", "Metric"), names_sep = "_", values_to = "Value") %>%
+  pivot_wider(names_from = Metric, values_from = Value) %>%
+  mutate(label = case_when(Setpoint == 22 & Intervention == "none" ~ "None, Setpoint = 22C",
+                           Setpoint == 18 & Intervention == "none" ~ "None, Setpoint = 18C",
+                           Intervention == "HeatedBlanket" ~ "Heated blanket",
+                           Intervention == "PassiveCombo" ~ "Passive combination",
+                           Intervention == "HeatedBlanketPassiveCombo" ~ "Passive combination + Heated blanket")) %>%
+  mutate(label = factor(label, levels = c("None, Setpoint = 22C", "None, Setpoint = 18C", "Heated blanket", "Passive combination", "Passive combination + Heated blanket"))) %>%
+  mutate(Intervention = factor(Intervention, levels = c("none", "HeatedBlanket", "PassiveCombo", "HeatedBlanketPassiveCombo"))) %>%
+  mutate(energy_kwh = energy*2.77778e-7)
+
+plot_stats <- ggplot(dallas_combined_stats_adj, aes(x = reorder(label, energy_kwh), y = energy_kwh)) +
+  geom_col(aes(fill = Intervention), width = 0.5) +
+  geom_text(aes(label = round(percdiff)), hjust = -0.5) +
+  scale_fill_manual(values = c("#bbbbbb", "#59abb7", "#ee833d", "#495893")) +
+  facet_grid(rows = vars(Type), scales = "free") +
+  scale_x_discrete(labels = function(Label) str_wrap(Label, width = 20)) +
+  theme_custom() +
+  coord_flip() +
+  xlab(NULL) +
+  ylab(NULL) +
+  theme(legend.position = "none")
+
+```
+
+```{r}
+dallas_plot <- dallas_combined %>%
+  filter(Intervention == "none" | Intervention == "HeatedBlanketPassiveCombo") %>%
+  mutate(Energy_kwh = Energy*2.77778e-7) %>%
+  mutate(Energy_adj_kwh = Energy_adj*2.77778e-7)
+  
+plot_timeseries_Temp <- ggplot(NULL, aes(x = MDY_HMS)) +
+  annotate("rect", xmin = parse_date_time("2021-02-14 0:00", "ymd_HM"), xmax = parse_date_time("2021-02-14 7:00", "ymd_HM"), ymin = -Inf, ymax = Inf, alpha = 0.2, fill = "#d1e5f0") +
+  geom_hline(yintercept = 18) +
+  geom_line(data = dallas_plot, aes(y = T.Indoor, colour = Setpoint, linetype = Intervention)) +
+  geom_line(data = dallas_plot, aes(y = T.Indoor_adj, colour = Setpoint, linetype = Intervention)) +
+  geom_line(data = dallas_outside, aes(y = KDFW)) +
+  geom_line(data = dallas_outside, aes(y = TMY3)) +
+  scale_y_continuous(limits = c(-20, 25), breaks = seq(-20, 25, by = 5)) +
+  theme_custom() +
+  ylab(NULL) +
+  xlab(NULL) +
+  theme(panel.grid.major.y = element_line(colour = "#f7f7f7"))
+  
+
+plot_timeseries_Energy <- ggplot(NULL, aes(x = MDY_HMS)) +
+   annotate("rect", xmin = parse_date_time("2021-02-14 0:00", "ymd_HM"), xmax = parse_date_time("2021-02-14 7:00", "ymd_HM"), ymin = -Inf, ymax = Inf, alpha = 0.2, fill = "#d1e5f0") +
+  geom_line(data = dallas_plot, aes(y = Energy_kwh, colour = Setpoint, linetype = Intervention)) +
+  geom_line(data = dallas_plot, aes(y = Energy_adj_kwh, colour = Setpoint, linetype = Intervention)) +
+  # scale_y_continuous(limits = c(0, 3.1e7)) +
+  theme_custom() +
+  ylab(NULL) +
+  xlab(NULL) +
+  theme(panel.grid.major.y = element_line(colour = "#f7f7f7"))
+```
+
+```{r}
+plot_left <- ggarrange(plot_timeseries_Energy, plot_timeseries_Temp, nrow = 2, ncol = 1, align = "hv", common.legend = TRUE)
+
+ggarrange(plot_left, plot_stats, ncol = 2, nrow = 1, widths = c(2, 1))
+
+ggsave("combined_energy.pdf", units = "in", width = 6.5, height = 4.5)
+
+```
+

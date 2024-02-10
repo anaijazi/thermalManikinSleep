@@ -1,0 +1,417 @@
+---
+title: "Case Study Analysis"
+author: "Arfa Aijazi"
+date: "November 2022"
+output:
+  html_document:
+    df_print: paged
+---
+This script completes all data analysis related to the two case studies as described in the paper.
+
+### Setup
+Load libraries
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(lubridate)
+library(knitr)
+library(zoo)
+library(forcats)
+library(gridExtra)
+library(Metrics)
+library(comf)
+library(ggpubr)
+```
+
+Set plot theme and colors
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+theme_custom = function() {
+  theme_minimal() %+replace%
+    theme(legend.position = "top") +
+    theme(panel.grid = element_blank()) +
+    theme(strip.background = element_blank()) +
+    theme(panel.border = element_blank()) +
+    theme(panel.background = element_blank()) +
+    theme(legend.title = element_blank()) +
+    theme(text = element_text(size = 7, colour = "#000000")) +
+    theme(plot.margin = margin(t = 0, r = 0.1, b = 0, l = 0.1))
+}
+```
+
+### Dallas 2021 Case Study
+Load EnergyPlus model outputs
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+dalls_epoutput_file <- "../data/case_study/dallas_energymodel/Dallas_Feb2021_Outage_KDFW/Dallas_Feb2021_Outage_KDFW.csv"
+dallas_epoutput <- read_csv(file = dalls_epoutput_file) 
+
+colnames(dallas_epoutput) <- c("Date.Time", "DBT", "T.Air", "T.Attic", "Electricity.Facility", "Electricity.Building", "Electricity.Zone", "Electricity.General", "Electricity.HVAC", "Electricity.Plant")
+
+dallas <- dallas_epoutput %>%
+  mutate(Date = str_extract(Date.Time, "^[^\\s]+")) %>%
+  mutate(Time = str_extract(Date.Time, "\\s.+")) %>%
+  mutate(Date = paste0(Date,"/2021")) %>%
+  mutate(Date.Time = paste(Date, Time, sep = " ")) %>%
+  mutate(Date.Time = parse_date_time(Date.Time, "mdy_HMS")) %>%
+  select(Date.Time, DBT, T.Air, Electricity.Facility) %>%
+  filter(between(Date.Time, parse_date_time("2021-02-11", "ymd"), parse_date_time("2021-02-23", "ymd"))) %>%
+  mutate(T.skin_Baseline = 32.74228) %>%
+  mutate(h.body_Baseline = 3.645669) %>%
+  mutate(Q_Baseline = h.body_Baseline*(T.skin_Baseline - T.Air)) %>%
+  mutate(h.cal_Baseline = 7.976792) %>%
+  mutate(T.eq_Baseline = T.skin_Baseline - (Q_Baseline/h.cal_Baseline)) %>%
+  mutate(T.skin_Passive = 34.60110) %>%
+  mutate(h.body_Passive = 1.341360) %>%
+  mutate(Q_Passive = h.body_Passive*(T.skin_Passive - T.Air)) %>%
+  mutate(h.cal_Passive = 7.621755) %>%
+  mutate(T.eq_Passive = T.skin_Passive - (Q_Passive/h.cal_Passive)) %>%
+  mutate(thermal.effect_Passive = T.eq_Passive - T.eq_Baseline) %>%
+  mutate(thermal.effect_Passive = ifelse(Electricity.Facility == 0, thermal.effect_Passive, 0)) %>%
+  mutate(thermal.effect_Passive = ifelse(hour(Date.Time) >= 22 | hour(Date.Time) < 7, thermal.effect_Passive, 0)) %>%
+  mutate(T.Air_Passive = T.Air + thermal.effect_Passive) %>%
+  mutate(T.skin_HeatedBlanket = 34.05160) %>%
+  mutate(h.body_HeatedBlanket = 1.992226) %>%
+  mutate(Q_HeatedBlanket = h.body_HeatedBlanket*(T.skin_HeatedBlanket - T.Air)) %>%
+  mutate(h.cal_HeatedBlanket = 7.976792) %>%
+  mutate(T.eq_HeatedBlanket = T.skin_HeatedBlanket - (Q_HeatedBlanket/h.cal_HeatedBlanket)) %>%
+  mutate(thermal.effect_HeatedBlanket = T.eq_HeatedBlanket - T.eq_Baseline) %>%
+  mutate(thermal.effect_HeatedBlanket = ifelse(Electricity.Facility == 0, thermal.effect_HeatedBlanket, 0)) %>%
+  mutate(thermal.effect_HeatedBlanket = ifelse(hour(Date.Time) >= 22 | hour(Date.Time) < 7, thermal.effect_HeatedBlanket, 0)) %>%
+  mutate(T.Air_HeatedBlanket = T.Air + thermal.effect_HeatedBlanket) %>%
+  mutate(T.skin_HeatedBlanketPassive = 34.84524) %>%
+  mutate(h.body_HeatedBlanketPassive = 1.120498) %>%
+  mutate(Q_HeatedBlanketPassive = h.body_HeatedBlanketPassive*(T.skin_HeatedBlanketPassive - T.Air)) %>%
+  mutate(h.cal_HeatedBlanketPassive = 7.621755) %>%
+  mutate(T.eq_HeatedBlanketPassive = T.skin_HeatedBlanketPassive - (Q_HeatedBlanketPassive/h.cal_HeatedBlanketPassive)) %>%
+  mutate(thermal.effect_HeatedBlanketPassive = T.eq_HeatedBlanketPassive - T.eq_Baseline) %>%
+  mutate(thermal.effect_HeatedBlanketPassive = ifelse(Electricity.Facility == 0, thermal.effect_HeatedBlanketPassive, 0)) %>%
+  mutate(thermal.effect_HeatedBlanketPassive = ifelse(hour(Date.Time) >= 22 | hour(Date.Time) < 7, thermal.effect_HeatedBlanketPassive, 0)) %>%
+  mutate(T.Air_HeatedBlanketPassive = T.Air + thermal.effect_HeatedBlanketPassive)
+```
+Calculate degree-hours of exposure to temperatures below WHO minimum indoor temperature recommendation of 18C during sleeping hours (10pm - 7am)
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+dallas_exposure <- dallas %>%
+  select(Date.Time, starts_with("T.Air")) %>%
+  filter(hour(Date.Time) >= 22 | hour(Date.Time) < 7) %>%
+  rename(T.Air_None = T.Air) %>%
+  pivot_longer(!Date.Time, names_to = "Type", values_to = "Temperature") %>%
+  mutate(exposure = 18 - Temperature) %>%
+  mutate(exposure = ifelse(exposure > 0, exposure, 0)) %>%
+  group_by(Type) %>%
+  mutate(Type = factor(Type, levels = rev(c("DBT", "T.Air_None", "T.Air_Passive", "T.Air_HeatedBlanket", "T.Air_HeatedBlanketPassive")))) %>%
+  summarise(exposure = sum(exposure))
+```
+
+Calculate percent change in cold exposure relative to baseline
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+dallas_exposure <- dallas_exposure %>%
+  arrange(desc(exposure)) %>%
+  mutate(percent.reduction = 100*(exposure-dallas_exposure$exposure[1])/dallas_exposure$exposure[1])
+```
+
+Prepare data for plot and plot cold exposure by intervention type
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+dallas_exposure$Type2 = c("None", "Active", "Passive", "Passive + Active")
+dallas_exposure$Type2 = factor(dallas_exposure$Type2, levels = c("None", "Passive", "Active", "Passive + Active"))
+
+dallas_exposure$Label = c("None", "Heated blanket (on)", "Passive combination", "Passive combination + Heated blanket")
+
+dallas_exposure <- dallas_exposure %>%
+  mutate(Label = fct_reorder(Label, exposure))
+
+dallas_exposure$percent.reduction[1] = NA
+
+dallas_exposure_plot <- ggplot(dallas_exposure, aes(x = Label, y = exposure)) + 
+  geom_col(aes(fill = Type2), width = 0.5) +
+  geom_text(aes(label = round(percent.reduction)), hjust = -0.5) +
+  scale_fill_manual(values = c("#bbbbbb", "#ee833d", "#59abb7", "#495893")) +
+  scale_y_continuous(breaks = seq(0, 600, 300), limits = c(0, 650)) +
+  scale_x_discrete(labels = function(Label) str_wrap(Label, width = 20)) +
+  theme_custom() +
+  ylab("Sleep time heat/cold exposure (degree-hours)") +
+  theme(axis.title = element_blank()) +
+  theme(legend.position = "none") +
+  coord_flip() 
+```
+
+Prepare data for plot and plot temperature and effective temperature over time
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+dallas_plot <- dallas %>%
+  select(Date.Time, DBT, T.Air, T.Air_Passive) %>%
+  rename(T.Air_None = T.Air) %>%
+  mutate(WHO = 18) %>%
+  pivot_longer(!Date.Time, names_to = "Type", values_to = "Temperature") %>%
+  mutate(Type = factor(Type, levels = c("DBT", "WHO", "T.Air_None", "T.Air_Passive")))
+
+dallas_timeseries_plot <- ggplot(dallas_plot, aes(x = Date.Time, y = Temperature)) +
+  annotate("rect", xmin = parse_date_time("2021-02-14 1:00", "ymd_HM"), xmax = parse_date_time("2021-02-20 0:00", "ymd_HM"), ymin = -Inf, ymax = Inf, alpha = 0.2, fill = "#d1e5f0") +
+  annotate("text", x = parse_date_time("2021-02-14 12:00", "ymd_HM"), y = Inf, label = "Power outage") +
+  geom_line(aes(linetype = Type, colour = Type)) + 
+  scale_colour_manual(values = c("#d9f0d3", "#e7d4e8", "#000000", "#ee833d")) +
+  xlim(c(parse_date_time("2021-02-11", "ymd"), parse_date_time("2021-02-23", "ymd"))) +
+  scale_y_continuous(breaks = seq(-20, 25, 5), limits = c(-20, 25)) +
+  theme_custom() +
+  theme(axis.title = element_blank()) +
+  theme(panel.grid.major.y = element_line(colour = "#f7f7f7"))
+
+```
+
+### Karachi 2015 Case Study
+Load ASHRAE thermal comfort database v2 data
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Read in metadata from Github as data table
+df_meta <- read_csv("https://github.com/CenterForTheBuiltEnvironment/ashrae-db-II/raw/master/v2.1.0/db_metadata.csv")
+
+# Read in database from Github as data table
+df_measurements <- read_csv("https://github.com/CenterForTheBuiltEnvironment/ashrae-db-II/raw/master/v2.1.0/db_measurements_v2.1.0.csv.gz")
+```
+
+Clean-up and subset downloaded data
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+# Subset records with indoor air temperature and meteorological data
+df_acm2 <- df_measurements %>%
+  filter(!is.na(ta) & 
+           (!is.na(t_out_isd)|!is.na(t_out)))
+
+# Collapse outdoor met data
+df_acm2 <- df_acm2 %>%
+  mutate(t_out_combined = case_when(!is.na(t_out_isd) ~ t_out_isd,
+                                    is.na(t_out_isd) & !is.na(t_out) ~ t_out,
+                                    TRUE ~ NA_real_)) %>%
+  select(-c(t_out_isd, t_out))
+
+# Add relevant parameters from metadata table
+df_acm2 <- df_meta %>%
+  select(building_id, region, country, city, building_type, cooling_type, records, climate) %>%
+  left_join(df_acm2, ., by = "building_id")
+
+# Subset records from multifamily buildings in hot arid or semi-arid climate
+df_karachi <- df_acm2 %>%
+  filter(building_type == "multifamily housing") %>%
+  filter(climate == "hot semi-arid" | climate == "desert (hot arid)") %>%
+  filter(cooling_type == "naturally ventilated") %>%
+  select(building_id, building_type, cooling_type, region, country, city, climate, timestamp, season, ta, tr, rh, t_out_combined)
+```
+
+Linear model of indoor air temperature wrt outdoor temperature
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+lm_karachi_ta <- lm(ta ~ t_out_combined, data = df_karachi, na.action = na.exclude)
+summary(lm_karachi_ta)
+
+a_ta <- lm_karachi_ta$coefficients[2]
+b_ta <- lm_karachi_ta$coefficients[1]
+r2_ta <- summary(lm_karachi_ta)$r.squared
+MAE_ta <- mae(df_karachi$ta, predict(lm_karachi_ta, newdata = df_karachi))
+```
+
+Linear model of indoor radiant temperature wrt outdoor temperature
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+lm_karachi_tr <- lm(tr ~ t_out_combined, data = df_karachi, na.action = na.exclude)
+summary(lm_karachi_tr)
+
+a_tr <- lm_karachi_tr$coefficients[2]
+b_tr <- lm_karachi_tr$coefficients[1]
+r2_tr <- summary(lm_karachi_tr)$r.squared
+MAE_tr <- mae(df_karachi$tr, predict(lm_karachi_tr, newdata = df_karachi))
+```
+
+Plot indoor air temperature wrt outdoor temperature
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(df_karachi, aes(x = t_out_combined, y = ta)) + 
+  xlim(9, 40) +
+  ylim(9, 40) +
+  xlab("Outdoor air temperature, To (C)") +
+  ylab("Indoor air temperature, Ta (C)") +
+  geom_point(colour = "#bbbbbb") +
+  geom_smooth(method = "lm", se = FALSE, colour = "#DDAA33") +
+  annotate("text", x = 10, y = 40, label = paste0("Ta = ", round(a_ta, 1)," x To + ", round(b_ta, 1)), colour = "#4d4d4d") +
+  #annotate("text", x = 10, y = 38, label = paste0("MAE = ", round(MAE_ta, 1), "C"), colour = "#4d4d4d") +
+  annotate("text", x = 10, y = 38, label = paste0("R2 = ", round(r2_ta, 2)), colour = "#4d4d4d") +
+  annotate("text", x = 30, y = 10, label = paste0("Based on ", nrow(df_karachi), " observations of naturally ventilated multifamily housing in hot semi-arid climate"), colour = "#4d4d4d") +
+  theme_custom()
+```
+
+Plot indoor radiant temperature wrt outdoor temperature 
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ggplot(df_karachi, aes(x = t_out_combined, y = tr)) + 
+  xlim(9, 40) +
+  ylim(9, 40) +
+  xlab("Outdoor air temperature, To (C)") +
+  ylab("Mean radiant temperature, Tr (C)") +
+  geom_point(colour = "#bbbbbb") +
+  geom_smooth(method = "lm", se = FALSE, colour = "#AA3377") +
+  annotate("text", x = 10, y = 40, label = paste0("Tr = ", round(a_tr, 1)," x To + ", round(b_tr, 1)), colour = "#4d4d4d") +
+  #annotate("text", x = 10, y = 38, label = paste0("MAE = ", round(MAE_tr, 1), "C"), colour = "#4d4d4d") +
+  annotate("text", x = 10, y = 38, label = paste0("R2 = ", round(r2_tr, 2)), colour = "#4d4d4d") +
+  annotate("text", x = 30, y = 10, label = paste0("Based on ", nrow(df_karachi), " observations of naturally ventilated multifamily housing in hot semi-arid climate"), colour = "#4d4d4d") +
+  theme_custom()
+```
+
+Download historical weather data from June 2015 and model indoor air temperature using the above linear model
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+historical_file <- "../data/case_study/Karachi_June2015_OPKC.csv"
+karachi_June2015 <- read.csv(file = historical_file, header = TRUE) %>%
+  filter(stations == "OPKC") %>%
+  rename(DBT = temp) %>%
+  rename(RH_DBT = humidity) %>%
+  rename(Date.Time = datetime) %>%
+  select(-stations) %>%
+  mutate(Date.Time = str_replace(Date.Time, "T", " ")) %>%
+  mutate(Date.Time = parse_date_time(Date.Time, "ymd_HMS")) %>%
+  mutate(T.Air = (DBT * a_ta) + b_ta) %>%
+  mutate(ps_DBT = 610.78*exp(DBT/(DBT + 238.3) * 17.2694)) %>%
+  mutate(p = (RH_DBT/100) * ps_DBT) %>%
+  mutate(ps_T.Air = 610.78*exp(T.Air/(T.Air + 238.3) * 17.2694)) %>%
+  mutate(RH_T.Air = (p/ps_T.Air)*100) 
+```
+
+Calculate cooling effect based on modeled SET from the comf package. Inputs for the SET model come from the linear model for indoor air temperature and indoor radiant temperature above and experimental conditions.
+
+Baseline
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+baselineCond <- createCond()
+baselineCond$ta <- karachi_June2015$T.Air
+baselineCond$tr <- karachi_June2015$T.Air
+baselineCond$vel <- 0.1
+baselineCond$rh <- karachi_June2015$RH_T.Air
+baselineCond$met <- 0.7
+baselineCond$clo <- 1.2
+
+baselineSET <- calcComfInd(baselineCond, request = "set") 
+karachi_June2015$baseline <- baselineSET$set
+```
+
+Passive combination
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+passiveCond <- createCond()
+passiveCond$ta <- karachi_June2015$T.Air
+passiveCond$tr <- karachi_June2015$T.Air
+passiveCond$vel <- 0.1
+passiveCond$rh <- karachi_June2015$RH_T.Air
+passiveCond$met <- 0.7
+passiveCond$clo <- 0.34
+
+passiveSET <- calcComfInd(passiveCond, request = "set") 
+karachi_June2015$passiveSET <- passiveSET$set
+```
+
+Ceiling fan
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ceilingFanCond <- createCond()
+ceilingFanCond$ta <- karachi_June2015$T.Air
+ceilingFanCond$tr <- karachi_June2015$T.Air
+ceilingFanCond$vel <- 0.4
+ceilingFanCond$rh <- karachi_June2015$RH_T.Air
+ceilingFanCond$met <- 0.7
+ceilingFanCond$clo <- 1.2
+
+ceilingFanSET <- calcComfInd(ceilingFanCond, request = "set") 
+karachi_June2015$ceilingFanSET <- ceilingFanSET$set
+```
+
+Ceiling fan + passive combination
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+ceilingFanPassiveCond <- createCond()
+ceilingFanPassiveCond$ta <- karachi_June2015$T.Air
+ceilingFanPassiveCond$tr <- karachi_June2015$T.Air
+ceilingFanPassiveCond$vel <- 0.4
+ceilingFanPassiveCond$rh <- karachi_June2015$RH_T.Air
+ceilingFanPassiveCond$met <- 0.7
+ceilingFanPassiveCond$clo <- 0.34
+
+ceilingFanPassiveSET <- calcComfInd(ceilingFanPassiveCond, request = "set") 
+karachi_June2015$ceilingFanPassiveSET <- ceilingFanPassiveSET$set
+```
+
+Calculate cooling effect
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+karachi_June2015 <- karachi_June2015 %>%
+  filter(between(Date.Time, parse_date_time("2015-06-14", "ymd"), parse_date_time("2015-06-27", "ymd"))) %>%
+  pivot_longer(ends_with("SET"), names_to = "Type", values_to = "SET") %>%
+  mutate(CoolingEffect = baseline - SET) %>%
+  mutate(CoolingEffect = ifelse(between(Date.Time, parse_date_time("2015-06-17", "ymd"), parse_date_time("2015-06-24", "ymd")), CoolingEffect, 0)) %>%
+mutate(CoolingEffect = ifelse(hour(Date.Time) >= 22 | hour(Date.Time) < 7, CoolingEffect, 0))%>%
+  mutate(Type = substring(Type, 1, nchar(Type)-3)) %>%
+  mutate(T.Air2 = T.Air - CoolingEffect) %>%
+  select(Date.Time, DBT, T.Air, Type, T.Air2) %>%
+  pivot_wider(names_from = Type, values_from = T.Air2) %>%
+  rename(T.Air_None = T.Air, T.Air_Passive = passive, T.Air_ceilingFan = ceilingFan, T.Air_ceilingFanPassive = ceilingFanPassive)
+  
+```
+
+Calculate degree-hours of exposure to temperatures above WHO minimum indoor temperature recommendation of 30C during sleeping hours (10pm - 7am)
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+karachi_exposure <- karachi_June2015 %>%
+  filter(between(Date.Time, parse_date_time("2015-06-17", "ymd"), parse_date_time("2015-06-24", "ymd"))) %>%
+  filter(hour(Date.Time) >= 22 | hour(Date.Time) < 7) %>%
+  filter(DBT != 25) %>%
+  select(Date.Time, starts_with("T.Air")) %>%
+  pivot_longer(!Date.Time, names_to = "Type", values_to = "Temperature") %>%
+  mutate(exposure = Temperature - 30) %>%
+  mutate(exposure = ifelse(exposure > 0, exposure, 0)) %>%
+  group_by(Type) %>%
+  mutate(Type = factor(Type, levels = c("T.Air_None", "T.Air_Passive", "T.Air_ceilingFan", "T.Air_ceilingFanPassive"))) %>%
+  summarise(exposure = sum(exposure)) %>%
+  mutate(exposure = round(exposure, 0))
+```
+
+Calculate percent change in heat exposure relative to baseline and prepare data for plot
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+karachi_exposure <- karachi_exposure %>%
+  arrange(desc(exposure)) %>%
+  mutate(percent.reduction = 100*(exposure - karachi_exposure$exposure[1])/karachi_exposure$exposure[1]) 
+  
+karachi_exposure$Type2 = c("None", "Active", "Passive", "Passive + Active")
+karachi_exposure$Type2 = factor(karachi_exposure$Type2, levels = c("None", "Passive", "Active", "Passive + Active"))
+
+karachi_exposure$Label = c("None", "Ceiling fan", "Passive combination", "Passive combination + Ceiling fan")
+
+karachi_exposure <- karachi_exposure %>%
+  mutate(Label = fct_reorder(Label, exposure))
+
+karachi_exposure$percent.reduction[1] = NA
+```
+
+Plot heat exposure by intervention type
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+karachi_exposure_plot <- ggplot(karachi_exposure, aes(x = Label, y = exposure)) + 
+  geom_col(aes(fill = Type2), width = 0.5) +
+  geom_text(aes(label = round(percent.reduction)), hjust = -0.5) +
+  scale_fill_manual(values = c("#bbbbbb", "#ee833d", "#59abb7", "#495893")) +
+  scale_y_continuous(breaks = seq(0, 600, 300), limits = c(0, 650)) +
+  scale_x_discrete(labels = function(Label) str_wrap(Label, width = 20)) +
+  theme_custom() +
+  theme(axis.title = element_blank()) +
+  theme(legend.position = "none") +
+  coord_flip() 
+```
+
+Prepare data for plot and plot temperature and effective temperature over time
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+karachi_June2015_plot <- karachi_June2015 %>% 
+  select(Date.Time, DBT, T.Air_None, T.Air_Passive) %>%
+  filter(DBT != 25) %>%
+  mutate(WHO = 30) %>%
+  pivot_longer(!Date.Time, names_to = "Type", values_to = "Temperature") %>%
+  mutate(Type = factor(Type, levels = c("DBT", "WHO", "T.Air_None", "T.Air_Passive")))
+
+karachi_timeseries_plot <- ggplot(karachi_June2015_plot, aes(x = Date.Time, y = Temperature)) + 
+  annotate("rect", xmin = parse_date_time("2015-06-17 0:00", "ymd_HM"), xmax = parse_date_time("2015-06-24 0:00", "ymd_HM"), ymin = -Inf, ymax = Inf, alpha = 0.2, fill = "#FDDBC7") +
+  annotate("text", x = parse_date_time("2015-06-17 12:00", "ymd_HM"), y = Inf, label = "Heat Wave") +
+  geom_line(aes(linetype = Type, colour = Type)) +
+  scale_colour_manual(values = c("#D9F0D3", "#e7d4e8", "#000000", "#ee833d")) +
+  scale_x_datetime(date_breaks = "2 day", date_labels = "%b %d", limits = c(parse_date_time("2015-06-14", "ymd"), parse_date_time("2015-06-27", "ymd"))) +
+  scale_y_continuous(breaks = seq(25, 45, 5), limits = c(25, 45)) +
+  theme_custom() +
+  theme(axis.title = element_blank()) +
+  theme(panel.grid.major.y = element_line(colour = "#f7f7f7"))
+```
+
+Combine plots to form Figure 2 in paper
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+right <- ggarrange(karachi_exposure_plot, dallas_exposure_plot, legend = "none", nrow = 2, ncol = 1, align = "hv", labels = c("ii", "ii"))
+
+left <- ggarrange(karachi_timeseries_plot, dallas_timeseries_plot, legend = "none", nrow = 2, ncol = 1, align = "hv", labels = c("i", "i"))
+
+ggarrange(left, right, widths = c(3, 2), ncol = 2, nrow = 1)
+```
+
